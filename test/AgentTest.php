@@ -1,10 +1,25 @@
 <?php
+require "lib/instrumental.php";
+
 class AgentTest extends \PHPUnit_Framework_TestCase
 {
-    public function testTrueIsTrue()
+    public function testSendsGaugeCallsCorrectly()
     {
-        $foo = true;
-        $this->assertTrue($foo);
+        $expectedData = new SplQueue();
+        // $expectedData->enqueue('hello version php/instrumental_agent/${VERSION}\nauthenticate test\n');
+        // $expectedData->enqueue('ok\nok\n');
+        $expectedData->enqueue("gauge test.metric1 0 1459979210 1");
+        
+        // $expectedData = [
+        //     'hello version php/instrumental_agent/${VERSION}\nauthenticate test\n', 'ok\nok\n'
+        // ];
+        $I = new Instrumental();
+        $I->setApiKey("test");
+        $I->setEnabled(true);
+
+        $I->gauge('test.metric1', 0, 1459979210);
+
+        $this->assertEquals($expectedData->dequeue(), $I->getQueue()->dequeue());
     }
 }
 
