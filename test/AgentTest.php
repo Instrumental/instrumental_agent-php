@@ -6,8 +6,8 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     public function testSendsGaugeCallsCorrectly()
     {
         $expectedData = new SplQueue();
-        // $expectedData->enqueue('hello version php/instrumental_agent/${VERSION}\nauthenticate test\n');
-        // $expectedData->enqueue('ok\nok\n');
+        $expectedData->enqueue('hello version php/instrumental_agent/${VERSION}\nauthenticate test\n');
+        $expectedData->enqueue('ok\nok\n');
         $expectedData->enqueue("gauge test.metric1 0 1459979210 1");
         
         // $expectedData = [
@@ -18,7 +18,8 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $I->setEnabled(true);
 
         $I->gauge('test.metric1', 0, 1459979210);
-
+        sleep(3);
+        
         $this->assertEquals($expectedData->dequeue(), $I->getQueue()->dequeue());
     }
 }

@@ -3,7 +3,7 @@ set -e
 cd "`dirname \"$0\"`/.."
 
 # http://www.smddzcy.com/2016/01/installing-configuring-php7-zts-on-os-x/
-(php -v | grep 'PHP 7.0') || brew install php70 --with-thread-safety
+(php -v | grep 'PHP 7.0') || brew install php70 --with-thread-safety --with-phpdbg
 
 if ! php -i | grep -- '--enable-maintainer-zts' &> /dev/null; then
   echo "Your php doesn't have thread safety, reinstall."

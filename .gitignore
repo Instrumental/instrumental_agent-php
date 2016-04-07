@@ -2,3 +2,5 @@
 Thumbs.db
 composer.phar
 vendor/
+\#*
+\.\#*
