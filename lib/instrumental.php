@@ -144,7 +144,6 @@ class Instrumental
                 return $address;
             }
         } catch (Exception $e) {
-            print_r($e);
             $this->puts("Couldn't resolve address for #{host}:#{port}", "warn");
             $this->report_exception($e);
             return null;
