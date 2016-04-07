@@ -15,3 +15,4 @@ brew list php70-pthreads > /dev/null || brew install php70-pthreads
 which composer || brew install homebrew/php/composer
 
 composer install
+composer update
