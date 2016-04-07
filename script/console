@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+cd "`dirname \"$0\"`/.."
+
+php -a -f script/console_require
