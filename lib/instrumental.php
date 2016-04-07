@@ -5,6 +5,7 @@ class Instrumental
     const MAX_BUFFER = 5000;
     const RESOLUTION_FAILURES_BEFORE_WAITING = 3;
     const RESOLUTION_WAIT = 30;
+    const RESOLVE_TIMEOUT = 1;
 
     function __construct()
     {
@@ -137,7 +138,7 @@ class Instrumental
             {
                 $this->last_connect_at = $moment_to_connect;
                 $resolver = new Net_DNS2_Resolver();
-                $resolver->timeout = 10;
+                $resolver->timeout = self::RESOLVE_TIMEOUT;
                 $address = $resolver->query($host)->answer[0]->address;
                 $this->dns_resolutions = 0;
                 return $address;
