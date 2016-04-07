@@ -9,7 +9,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         // $expectedData->enqueue('hello version php/instrumental_agent/${VERSION}\nauthenticate test\n');
         // $expectedData->enqueue('ok\nok\n');
         $expectedData->enqueue("gauge test.metric1 0 1459979210 1");
-        
+
         // $expectedData = [
         //     'hello version php/instrumental_agent/${VERSION}\nauthenticate test\n', 'ok\nok\n'
         // ];
@@ -20,6 +20,17 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $I->gauge('test.metric1', 0, 1459979210);
 
         $this->assertEquals($expectedData->dequeue(), $I->getQueue()->dequeue());
+    }
+
+    public function testHostnameResolution()
+    {
+        $expectedData = "127.0.0.1";
+
+        $I = new Instrumental();
+
+        $address = $I->ipv4_address_for_host('localhost', 80);
+
+        $this->assertEquals($expectedData, $address);
     }
 }
 

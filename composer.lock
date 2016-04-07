@@ -4,8 +4,52 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "77bc8f0dc10de631324868244bdf8eff",
-    "packages": [],
+    "hash": "f4a63d6e92768b169c596ef0679b33d5",
+    "packages": [
+        {
+            "name": "pear/net_dns2",
+            "version": "1.4.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mikepultz/netdns2.git",
+                "reference": "ba0ede1df70ed98591a14efc88fb9097eafaf541"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mikepultz/netdns2/zipball/ba0ede1df70ed98591a14efc88fb9097eafaf541",
+                "reference": "ba0ede1df70ed98591a14efc88fb9097eafaf541",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.1.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Net_DNS2": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-2-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Mike Pultz",
+                    "email": "mike@mikepultz.com",
+                    "homepage": "http://mikepultz.com/",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Native PHP5 DNS Resolver and Updater Library",
+            "homepage": "http://netdns2.com/",
+            "keywords": [
+                "dns",
+                "network"
+            ],
+            "time": "2015-04-13 00:55:32"
+        }
+    ],
     "packages-dev": [
         {
             "name": "phpunit/php-code-coverage",
