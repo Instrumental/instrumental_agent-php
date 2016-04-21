@@ -4,3 +4,5 @@ composer.phar
 vendor/
 \#*
 \.\#*
+test/server_commands_received
+test/server.log

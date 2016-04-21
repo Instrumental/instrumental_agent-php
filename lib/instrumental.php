@@ -14,24 +14,64 @@ class Instrumental // extends Thread
 
     function __construct()
     {
+        $this->puts("__construct");
         // $this->pool  = new Pool(1);
         // $this->jobs  = [];
-        $this->queue = new SplQueue();
+        // $this->queue = new SplQueue();
         $this->dns_resolutions = 0;
-        $this->host = "collector.instrumentalapp.com.";
-        $this->port = 8001;
-        $this->address = $this->getIpv4AddressForHost();
-        $this->tcp_client = stream_socket_client("tcp://{$this->address}:{$this->port}", $errno, $errorMessage);
+        // $this->host = "collector.instrumentalapp.com.";
+        // $this->port = 8000;
+        $this->host = "127.0.0.1";
+        $this->port = 4040;
         $this->last_connect_at = 0;
+        $this->socket = null;
+        // $this->address = $this->getIpv4AddressForHost();
         // $this->log = new Logger('name');
         // $this->log->pushHandler(new StreamHandler('/tmp/development.log', Logger::DEBUG));
 
     }
 
+    public function connect()
+    {
+        $this->socket = stream_socket_client("tcp://{$this->host}:{$this->port}", $errno, $errorMessage, 10);
+
+        $version = "0.0.1";
+        $hostname = gethostname();
+        $pid = getmypid();
+        $runtime = phpversion();
+        $platform = php_uname();
+        $cmd = "hello version ruby/instrumental_agent/$version hostname $hostname pid $pid runtime $runtime platform $platform\n";
+
+        $this->socket_send($cmd);
+        $this->puts("connect fgets");
+        $line = fgets($this->socket, 1024);
+        $this->puts("connect $line");
+        if($line != "ok\n")
+        {
+          $this->puts("Sending hello failed.");
+          return FALSE;
+        }
+
+        $cmd = "authenticate $this->api_key\n";
+        $this->socket_send($cmd);
+        $this->puts("connect fgets");
+        $line = fgets($this->socket, 1024);
+        $this->puts("connect $line");
+        if($line != "ok\n")
+        {
+          $this->puts("Authentication failed.");
+          return FALSE;
+        }
+        return TRUE;
+    }
+
     function puts($message)
     {
         // $this->log->addError('Bar');
-        error_log("$message\n", 3, "logs/development.log");
+        echo "$message\n";
+        // flush();
+        ob_flush();
+        // error_log("$message\n", 3, "logs/development.log");
     }
 
     public function setApiKey($api_key)
@@ -49,6 +89,11 @@ class Instrumental // extends Thread
         return $this->enabled;
     }
 
+    public function getSocket()
+    {
+        return $this->socket;
+    }
+
     public function getQueue()
     {
         return $this->queue;
@@ -61,6 +106,7 @@ class Instrumental // extends Thread
 
     public function gauge($metric, $value, $time = null, $count = 1)
     {
+        $this->puts("gauge");
         if($time)
         {
             // do nothing
@@ -111,16 +157,19 @@ class Instrumental // extends Thread
 
     public function send_command(...$args)
     {
-        $cmd = join(" ", $args);
+        $this->puts("send_command");
+        $cmd = join(" ", $args) . "\n";
         if($this->getEnabled())
         {
             //$this->start_connection_worker(); // TODO should immediately return
                                               // if already running
 
-            $this->jobs->push(new Worker($this->tcp_client, $cmd))
-            $this->pool->submit();
+            // $this->jobs->push(new Worker($this->tcp_client, $cmd));
+            // $this->pool->submit();
 
-            
+            $this->socket_send($cmd);
+
+
             // if($this->getQueue()->count() < self::MAX_BUFFER)
             // {
             //     $this->setQueueFullWarning(FALSE);
@@ -129,6 +178,20 @@ class Instrumental // extends Thread
             // TODO QUEUE FULL
         }
 
+    }
+
+    public function socket_send($message)
+    {
+      $this->puts("socket_send");
+      if(!$this->socket)
+      {
+        if(!$this->connect())
+        {
+          return FALSE;
+        }
+      }
+      $this->puts("socket_send message: $message");
+      fwrite($this->socket, $message);
     }
 
     // public function start_connection_worker()
@@ -169,7 +232,7 @@ class Instrumental // extends Thread
             fflush($this->socket);
             fclose($this->socket);
             $this->socket = null;
-        }        
+        }
     }
 
     public function is_connected()
@@ -203,7 +266,7 @@ class Instrumental // extends Thread
         $this->send_with_reply_timeout("authenticate {$this->api_key}");
         $this->puts("end of run");
     }
-    
+
 
     public function queue_message($message)
     {
@@ -225,7 +288,7 @@ class Instrumental // extends Thread
             // $this->puts("current queue size " . $this->queue->count());
             // $this->puts("current queue " . print_r($this->queue));
             // $this->puts("current queue " . print_r($this->getQueue()));
-            // $this->puts("queue equality " . print_r($this->getQueue() === $this->queue));  
+            // $this->puts("queue equality " . print_r($this->getQueue() === $this->queue));
         }
     }
 
