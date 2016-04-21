@@ -131,12 +131,55 @@ class Instrumental // extends Thread
         {
             return null;
         }
+    }
 
-    //   end
-    // rescue Exception => e
-    //   report_exception(e)
-    //   nil
-    // end
+    public function increment($metric, $value, $time = null, $count = 1)
+    {
+        $this->puts("increment");
+        if($time)
+        {
+            // do nothing
+        } else
+        {
+            $time = time();
+        }
+
+        if($this->is_valid_metric($metric, $value, $time, (int)$count) &&
+           $this->send_command("increment", $metric, $value, $time, (int)$count))
+        {
+            return $value;
+        } else
+        {
+            return null;
+        }
+    }
+
+    public function notice($note, $time = null, $duration = 0)
+    {
+        $this->puts("notice");
+        if($time)
+        {
+            // do nothing
+        } else
+        {
+            $time = time();
+        }
+
+        if($this->is_valid_note($note) &&
+           $this->send_command("notice", $time, (int)$duration, $note))
+        {
+            return $note;
+        } else
+        {
+            return null;
+        }
+    }
+
+    public function is_valid_note($note)
+    {
+      $this->puts("is_valid_note");
+      // note !~ /[\n\r]/
+      return preg_match("/[\n\r]/", $note) === 0;
     }
 
     public function is_valid_metric($metric, $value, $time, $count)
