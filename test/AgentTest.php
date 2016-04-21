@@ -8,6 +8,16 @@ sleep(2);
 
 class AgentTest extends \PHPUnit_Framework_TestCase
 {
+    public function factoryAgent()
+    {
+      $I = new Instrumental();
+      $I->setHost("127.0.0.1");
+      $I->setPort(4040);
+      $I->setApiKey("test");
+      $I->setEnabled(true);
+      return $I;
+    }
+
     public function testSendsGaugeCallsCorrectly()
     {
         $expectedData =
@@ -15,13 +25,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
           "authenticate test\n" .
           "gauge php.gauge 2 [0-9]+ 1\n/";
 
-        $I = new Instrumental();
-        $I->setHost("127.0.0.1");
-        $I->setPort(4040);
-        $I->setApiKey("test");
-        $I->setEnabled(true);
-
-        $ret = $I->gauge('php.gauge', 2);
+        $ret = $this->factoryAgent()->gauge('php.gauge', 2);
         $this->assertEquals(2, $ret);
         sleep(2);
 
@@ -35,13 +39,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
           "authenticate test\n" .
           "increment php.increment 2 [0-9]+ 1\n/";
 
-        $I = new Instrumental();
-        $I->setHost("127.0.0.1");
-        $I->setPort(4040);
-        $I->setApiKey("test");
-        $I->setEnabled(true);
-
-        $ret = $I->increment('php.increment', 2);
+        $ret = $this->factoryAgent()->increment('php.increment', 2);
         $this->assertEquals(2, $ret);
         sleep(2);
 
@@ -55,13 +53,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
           "authenticate test\n" .
           "notice [0-9]+ 0 this is a test php notice\n/";
 
-        $I = new Instrumental();
-        $I->setHost("127.0.0.1");
-        $I->setPort(4040);
-        $I->setApiKey("test");
-        $I->setEnabled(true);
-
-        $ret = $I->notice("this is a test php notice");
+        $ret = $this->factoryAgent()->notice("this is a test php notice");
         $this->assertEquals("this is a test php notice", $ret);
         sleep(2);
 

@@ -41,6 +41,7 @@ class Instrumental // extends Thread
 
     public function connect()
     {
+        $this->puts("connect");
         $this->socket = stream_socket_client("tcp://{$this->host}:{$this->port}", $errno, $errorMessage, 10);
 
         $version = "0.0.1";

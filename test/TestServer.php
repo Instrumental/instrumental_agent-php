@@ -15,6 +15,7 @@ while($c = socket_accept($sock)) {
     print "Received line: $l\n";
     fwrite($fp, $l);
     socket_write($c, "ok\n");
+    print "Sent ok\n";
   }
 }
 socket_close($sock);
