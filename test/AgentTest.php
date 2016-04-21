@@ -21,7 +21,8 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $I->setApiKey("test");
         $I->setEnabled(true);
 
-        $I->gauge('php.gauge', 2);
+        $ret = $I->gauge('php.gauge', 2);
+        $this->assertEquals(2, $ret);
         sleep(2);
 
         $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));

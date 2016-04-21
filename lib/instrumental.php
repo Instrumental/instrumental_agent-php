@@ -126,7 +126,7 @@ class Instrumental // extends Thread
         if($this->is_valid_metric($metric, $value, $time, (int)$count) &&
            $this->send_command("gauge", $metric, $value, $time, (int)$count))
         {
-            return value;
+            return $value;
         } else
         {
             return null;
@@ -169,21 +169,8 @@ class Instrumental // extends Thread
         $cmd = join(" ", $args) . "\n";
         if($this->getEnabled())
         {
-            //$this->start_connection_worker(); // TODO should immediately return
-                                              // if already running
-
-            // $this->jobs->push(new Worker($this->tcp_client, $cmd));
-            // $this->pool->submit();
-
             $this->socket_send($cmd);
-
-
-            // if($this->getQueue()->count() < self::MAX_BUFFER)
-            // {
-            //     $this->setQueueFullWarning(FALSE);
-            //     $this->queue_message($cmd);
-            // }
-            // TODO QUEUE FULL
+            return TRUE;
         }
 
     }
