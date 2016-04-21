@@ -19,16 +19,24 @@ class Instrumental // extends Thread
         // $this->jobs  = [];
         // $this->queue = new SplQueue();
         $this->dns_resolutions = 0;
-        // $this->host = "collector.instrumentalapp.com.";
-        // $this->port = 8000;
-        $this->host = "127.0.0.1";
-        $this->port = 4040;
+        $this->host = "collector.instrumentalapp.com.";
+        $this->port = 8000;
         $this->last_connect_at = 0;
         $this->socket = null;
         // $this->address = $this->getIpv4AddressForHost();
         // $this->log = new Logger('name');
         // $this->log->pushHandler(new StreamHandler('/tmp/development.log', Logger::DEBUG));
 
+    }
+
+    public function setHost($host)
+    {
+      $this->host = $host;
+    }
+
+    public function setPort($port)
+    {
+      $this->port = $port;
     }
 
     public function connect()

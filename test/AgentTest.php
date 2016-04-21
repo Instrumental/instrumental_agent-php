@@ -16,6 +16,8 @@ class AgentTest extends \PHPUnit_Framework_TestCase
           "gauge php.gauge 2 [0-9]+ 1\n/";
 
         $I = new Instrumental();
+        $I->setHost("127.0.0.1");
+        $I->setPort(4040);
         $I->setApiKey("test");
         $I->setEnabled(true);
 
