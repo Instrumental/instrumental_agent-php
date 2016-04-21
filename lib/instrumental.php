@@ -134,7 +134,7 @@ class Instrumental // extends Thread
         }
     }
 
-    public function increment($metric, $value, $time = null, $count = 1)
+    public function increment($metric, $value = 1, $time = null, $count = 1)
     {
         $this->puts("increment");
         if($time)
@@ -185,26 +185,41 @@ class Instrumental // extends Thread
 
     public function is_valid_metric($metric, $value, $time, $count)
     {
+        $this->puts("is_valid_metric");
 
         $valid_metric = preg_match("/^([\d\w\-_]+\.)*[\d\w\-_]+$/i", $metric);
+        $this->puts("valid_metric: $valid_metric");
         $valid_value  = preg_match("/^-?\d+(\.\d+)?(e-\d+)?$/", (string)$value);
+        $this->puts("valid_value: $valid_value");
 
         if($valid_metric && $valid_value)
         {
             return TRUE;
         }
 
-        if($valid_metric)
+        if(!$valid_metric)
         {
-            report_invalid_metric(metric);
+            $this->report_invalid_metric($metric);
         }
 
-        if($valid_value)
+        if(!$valid_value)
         {
-            report_invalid_value(metric, value);
+            $this->report_invalid_value($metric, $value);
         }
 
         return FALSE;
+    }
+
+    public function report_invalid_metric($metric)
+    {
+      $this->increment("agent.invalid_metric");
+      $this->puts("Invalid metric $metric");
+    }
+
+    public function report_invalid_value($metric, $value)
+    {
+      $this->increment("agent.invalid_value");
+      $this->puts("Invalid value $value for $metric");
     }
 
     public function send_command(...$args)

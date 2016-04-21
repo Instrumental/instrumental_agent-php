@@ -18,28 +18,54 @@ class AgentTest extends \PHPUnit_Framework_TestCase
       return $I;
     }
 
-    public function testSendsGaugeCallsCorrectly()
+    public function testSendsIncrementCallsCorrectly()
     {
+        $I = $this->factoryAgent();
         $expectedData =
           "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
           "authenticate test\n" .
-          "gauge php.gauge 2 [0-9]+ 1\n/";
+          "increment php.increment 2 [0-9]+ 1\n/";
 
-        $ret = $this->factoryAgent()->gauge('php.gauge', 2);
+        $ret = $I->increment('php.increment', 2);
         $this->assertEquals(2, $ret);
         sleep(2);
 
         $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
     }
 
-    public function testSendsIncrementCallsCorrectly()
+    public function testDoesntSendIncrementWithInvalidMetric()
     {
+        $I = $this->factoryAgent();
         $expectedData =
           "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
           "authenticate test\n" .
-          "increment php.increment 2 [0-9]+ 1\n/";
+          "increment agent.invalid_metric 1 [0-9]+ 1\n" .
+          "increment agent.invalid_metric 1 [0-9]+ 1\n" .
+          "increment agent.invalid_metric 1 [0-9]+ 1\n" .
+          "increment agent.invalid_metric 1 [0-9]+ 1\n/";
 
-        $ret = $this->factoryAgent()->increment('php.increment', 2);
+        $ret = $I->increment('bad metric');
+        $this->assertEquals(null, $ret);
+        $ret = $I->increment(' badmetric');
+        $this->assertEquals(null, $ret);
+        $ret = $I->increment('badmetric ');
+        $this->assertEquals(null, $ret);
+        $ret = $I->increment('bad(metric');
+        $this->assertEquals(null, $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
+    public function testSendsGaugeCallsCorrectly()
+    {
+        $I = $this->factoryAgent();
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "gauge php.gauge 2 [0-9]+ 1\n/";
+
+        $ret = $I->gauge('php.gauge', 2);
         $this->assertEquals(2, $ret);
         sleep(2);
 
@@ -48,12 +74,13 @@ class AgentTest extends \PHPUnit_Framework_TestCase
 
     public function testSendsNoticeCallsCorrectly()
     {
+        $I = $this->factoryAgent();
         $expectedData =
           "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
           "authenticate test\n" .
           "notice [0-9]+ 0 this is a test php notice\n/";
 
-        $ret = $this->factoryAgent()->notice("this is a test php notice");
+        $ret = $I->notice("this is a test php notice");
         $this->assertEquals("this is a test php notice", $ret);
         sleep(2);
 
