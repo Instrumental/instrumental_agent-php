@@ -118,7 +118,7 @@ class Instrumental // extends Thread
         $this->puts("gauge");
         if($time)
         {
-            // do nothing
+            $time = (int)$time;
         } else
         {
             $time = time();
@@ -139,7 +139,7 @@ class Instrumental // extends Thread
         $this->puts("increment");
         if($time)
         {
-            // do nothing
+            $time = (int)$time;
         } else
         {
             $time = time();
@@ -160,7 +160,7 @@ class Instrumental // extends Thread
         $this->puts("notice");
         if($time)
         {
-            // do nothing
+            $time = (int)$time;
         } else
         {
             $time = time();
@@ -174,6 +174,21 @@ class Instrumental // extends Thread
         {
             return null;
         }
+    }
+
+    public function time($metric, $function, $multiplier = 1)
+    {
+      $start = microtime(TRUE);
+      $result = $function();
+      $finish = microtime(TRUE);
+      $duration = $finish - $start;
+      $this->gauge($metric, $duration * $multiplier, $start);
+      return $result;
+    }
+
+    public function timeMs($metric, $function)
+    {
+      return $this->time($metric, $function, 1000);
     }
 
     public function is_valid_note($note)

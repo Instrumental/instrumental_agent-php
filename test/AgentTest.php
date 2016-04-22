@@ -8,6 +8,12 @@ sleep(2);
 
 class AgentTest extends \PHPUnit_Framework_TestCase
 {
+    public function setUp()
+    {
+      // clear the test server command file
+      fopen("test/server_commands_received", 'w');
+    }
+
     public function factoryAgent()
     {
       $I = new Instrumental();
@@ -136,6 +142,72 @@ class AgentTest extends \PHPUnit_Framework_TestCase
 
         $ret = $I->notice("this is a test php notice");
         $this->assertEquals("this is a test php notice", $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
+    public function testSendsNoticeCallsCorrectlyWithTimeAndDuration()
+    {
+        $I = $this->factoryAgent();
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "notice 123 456 this is a test php notice\n/";
+
+        $ret = $I->notice("this is a test php notice", 123, 456);
+        $this->assertEquals("this is a test php notice", $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
+    public function testDoeasntSendNoticeCallWithInvalidMessage()
+    {
+        $I = $this->factoryAgent();
+        $expectedData =
+          "/^$/";
+
+        $ret = $I->notice("Bad\nNotice");
+        $this->assertEquals(null, $ret);
+        $ret = $I->notice("Bad\nNotice");
+        $this->assertEquals(null, $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
+    public function testSendsTimeCallsCorrectly()
+    {
+        $I = $this->factoryAgent();
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "gauge php.time 1.0[0-9]+ [0-9]+ 1\n/";
+
+        $ret = $I->time("php.time", function(){
+          sleep(1);
+          return "foo";
+        });
+        $this->assertEquals("foo", $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
+    public function testSendsTimeMsCallsCorrectly()
+    {
+        $I = $this->factoryAgent();
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "gauge php.time_ms 10[0-9][0-9].[0-9]+ [0-9]+ 1\n/";
+
+        $ret = $I->timeMs("php.time_ms", function(){
+          sleep(1);
+          return "foo";
+        });
+        $this->assertEquals("foo", $ret);
         sleep(2);
 
         $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
