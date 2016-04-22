@@ -54,6 +54,21 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
     }
 
+    public function testSendsIncrementCallsCorrectlyWithDateTime()
+    {
+        $I = $this->factoryAgent();
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "increment php.increment 2 15 1\n/";
+
+        $ret = $I->increment('php.increment', 2, new DateTime("1970-01-01 00:00:15"));
+        $this->assertEquals(2, $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
     public function testSendsIncrementCallsCorrectlyWithTimeAndCount()
     {
         $I = $this->factoryAgent();
@@ -132,6 +147,21 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
     }
 
+    public function testSendsGaugeCallsCorrectlyWithDateTime()
+    {
+        $I = $this->factoryAgent();
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "gauge php.gauge 2 15 1\n/";
+
+        $ret = $I->gauge('php.gauge', 2, new DateTime("1970-01-01 00:00:15"));
+        $this->assertEquals(2, $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
     public function testSendsNoticeCallsCorrectly()
     {
         $I = $this->factoryAgent();
@@ -156,6 +186,21 @@ class AgentTest extends \PHPUnit_Framework_TestCase
           "notice 123 456 this is a test php notice\n/";
 
         $ret = $I->notice("this is a test php notice", 123, 456);
+        $this->assertEquals("this is a test php notice", $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
+    public function testSendsNoticeCallsCorrectlyWithDateTime()
+    {
+        $I = $this->factoryAgent();
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "notice 15 0 this is a test php notice\n/";
+
+        $ret = $I->notice("this is a test php notice", new DateTime("1970-01-01 00:00:15"));
         $this->assertEquals("this is a test php notice", $ret);
         sleep(2);
 

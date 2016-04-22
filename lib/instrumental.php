@@ -118,7 +118,13 @@ class Instrumental // extends Thread
         $this->puts("gauge");
         if($time)
         {
-            $time = (int)$time;
+            if($time instanceOf DateTimeInterface)
+            {
+              $time = $time->getTimestamp();
+            } else
+            {
+              $time = (int)$time;
+            }
         } else
         {
             $time = time();
@@ -139,7 +145,13 @@ class Instrumental // extends Thread
         $this->puts("increment");
         if($time)
         {
-            $time = (int)$time;
+            if($time instanceOf DateTimeInterface)
+            {
+              $time = $time->getTimestamp();
+            } else
+            {
+              $time = (int)$time;
+            }
         } else
         {
             $time = time();
@@ -160,7 +172,13 @@ class Instrumental // extends Thread
         $this->puts("notice");
         if($time)
         {
-            $time = (int)$time;
+            if($time instanceOf DateTimeInterface)
+            {
+              $time = $time->getTimestamp();
+            } else
+            {
+              $time = (int)$time;
+            }
         } else
         {
             $time = time();
