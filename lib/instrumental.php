@@ -189,7 +189,7 @@ class Instrumental // extends Thread
 
         $valid_metric = preg_match("/^([\d\w\-_]+\.)*[\d\w\-_]+$/i", $metric);
         $this->puts("valid_metric: $valid_metric");
-        $valid_value  = preg_match("/^-?\d+(\.\d+)?(e-\d+)?$/", (string)$value);
+        $valid_value  = preg_match("/^-?\d+(\.\d+)?(e-\d+)?$/", print_r($value, TRUE));
         $this->puts("valid_value: $valid_value");
 
         if($valid_metric && $valid_value)
@@ -213,13 +213,13 @@ class Instrumental // extends Thread
     public function report_invalid_metric($metric)
     {
       $this->increment("agent.invalid_metric");
-      $this->puts("Invalid metric $metric");
+      $this->puts("Invalid metric " . print_r($metric, TRUE));
     }
 
     public function report_invalid_value($metric, $value)
     {
       $this->increment("agent.invalid_value");
-      $this->puts("Invalid value $value for $metric");
+      $this->puts("Invalid value " . print_r($value, TRUE) . " for " . print_r($metric, TRUE));
     }
 
     public function send_command(...$args)

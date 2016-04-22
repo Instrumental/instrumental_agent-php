@@ -24,9 +24,39 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $expectedData =
           "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
           "authenticate test\n" .
-          "increment php.increment 2 [0-9]+ 1\n/";
+          "increment php.increment 2.2 [0-9]+ 1\n/";
 
-        $ret = $I->increment('php.increment', 2);
+        $ret = $I->increment('php.increment', 2.2);
+        $this->assertEquals(2.2, $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
+    public function testSendsIncrementCallsCorrectlyWithTime()
+    {
+        $I = $this->factoryAgent();
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "increment php.increment 2 123 1\n/";
+
+        $ret = $I->increment('php.increment', 2, 123);
+        $this->assertEquals(2, $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
+    public function testSendsIncrementCallsCorrectlyWithTimeAndCount()
+    {
+        $I = $this->factoryAgent();
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "increment php.increment 2 123 456\n/";
+
+        $ret = $I->increment('php.increment', 2, 123, 456);
         $this->assertEquals(2, $ret);
         sleep(2);
 
@@ -51,6 +81,30 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $ret = $I->increment('badmetric ');
         $this->assertEquals(null, $ret);
         $ret = $I->increment('bad(metric');
+        $this->assertEquals(null, $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
+    public function testDoesntSendIncrementWithInvalidValue()
+    {
+        $I = $this->factoryAgent();
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "increment agent.invalid_value 1 [0-9]+ 1\n" .
+          "increment agent.invalid_value 1 [0-9]+ 1\n" .
+          "increment agent.invalid_value 1 [0-9]+ 1\n" .
+          "increment agent.invalid_value 1 [0-9]+ 1\n/";
+
+        $ret = $I->increment('bad.value', "a");
+        $this->assertEquals(null, $ret);
+        $ret = $I->increment('bad.value', "");
+        $this->assertEquals(null, $ret);
+        $ret = $I->increment('bad.value', FALSE);
+        $this->assertEquals(null, $ret);
+        $ret = $I->increment('bad.value', $I);
         $this->assertEquals(null, $ret);
         sleep(2);
 
