@@ -230,22 +230,33 @@ class Instrumental // extends Thread
 
     public function time($metric, $function, $multiplier = 1)
     {
-      // TODO: re-raise errors in user function
-      return $this->handleErrors(function() use ($metric, $function, $multiplier) {
+      // TODO: figure out if there's a way to re-raise errors/warnings
+      $result = null;
+      $exception = null;
+      $this->handleErrors(function() use ($metric, $function, $multiplier, &$result, &$exception) {
+        $this->puts("time");
         $start = microtime(TRUE);
-        $result = $function();
+        try {
+          $result = $function();
+        } catch (Exception $e) {
+          // $this->puts("time catch exception");
+          $exception = $e;
+        }
         $finish = microtime(TRUE);
         $duration = $finish - $start;
         $this->gauge($metric, $duration * $multiplier, $start);
-        return $result;
       });
+      // $this->puts("time exception: " . print_r($exception, TRUE));
+      if($exception)
+      {
+        throw $exception;
+      }
+      return $result;
     }
 
     public function timeMs($metric, $function)
     {
-      return $this->handleErrors(function() use ($metric, $function) {
-        return $this->time($metric, $function, 1000);
-      });
+      return $this->time($metric, $function, 1000);
     }
 
     public function is_valid_note($note)

@@ -298,6 +298,52 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
     }
 
+    public function testSendsTimeHandlesUserExceptionsCorrectly()
+    {
+        $I = $this->factoryAgent();
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "gauge php.time 1.0[0-9]+ [0-9]+ 1\n/";
+
+        $ret = null;
+        try {
+          $I->time("php.time", function(){
+            sleep(1);
+            throw new Exception('Test Exception.');
+          });
+        } catch (Exception $e) {
+          $ret = $e;
+        }
+        $this->assertEquals("Test Exception.", $ret->getMessage());
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
+    public function testSendsTimeMsHandlesUserExceptionsCorrectly()
+    {
+        $I = $this->factoryAgent();
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "gauge php.time_ms 10[0-9][0-9].[0-9]+ [0-9]+ 1\n/";
+
+        $ret = null;
+        try {
+          $I->timeMs("php.time_ms", function(){
+            sleep(1);
+            throw new Exception('Test Exception.');
+          });
+        } catch (Exception $e) {
+          $ret = $e;
+        }
+        $this->assertEquals("Test Exception.", $ret->getMessage());
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
     // public function testHostnameResolution()
     // {
     //     $expectedData = "127.0.0.1";
