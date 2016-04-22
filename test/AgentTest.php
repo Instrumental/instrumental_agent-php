@@ -3,15 +3,14 @@
 
 require "lib/instrumental.php";
 
-exec("php test/TestServer.php &> test/server.log &");
-sleep(2);
-
 class AgentTest extends \PHPUnit_Framework_TestCase
 {
     public function setUp()
     {
       // clear the test server command file
       fopen("test/server_commands_received", 'w');
+      exec("php test/TestServer.php &> test/server.log &");
+      sleep(1);
     }
 
     public function factoryAgent()
@@ -22,6 +21,34 @@ class AgentTest extends \PHPUnit_Framework_TestCase
       $I->setApiKey("test");
       $I->setEnabled(true);
       return $I;
+    }
+
+    public function testHandlesDisconnect()
+    {
+        $I = $this->factoryAgent();
+
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "increment php.increment 2.2 [0-9]+ 1\n/";
+
+        $ret = $I->increment('php.increment', 2.2);
+        $this->assertEquals(2.2, $ret);
+        sleep(2);
+
+        $pid = file_get_contents("test/server.pid");
+        echo exec("ps aux | grep php | grep TestServe[r]") . "\n";
+        echo exec("kill $pid") . "\n";
+        echo exec("ps aux | grep php | grep TestServe[r]") . "\n";
+        sleep(2);
+
+        for($i=1; $i<10000; ++$i) {
+          $ret = $I->increment('php.increment', 3);
+        }
+        // TODO: have agent reconnect?
+        $this->assertEquals(null, $ret);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
     }
 
     public function testHandlesNoConnection()

@@ -217,7 +217,6 @@ class Instrumental // extends Thread
     public function is_valid_note($note)
     {
       $this->puts("is_valid_note");
-      // note !~ /[\n\r]/
       return preg_match("/[\n\r]/", $note) === 0;
     }
 
@@ -282,8 +281,15 @@ class Instrumental // extends Thread
         }
       }
       $this->puts("socket_send message: $message");
-      fwrite($this->socket, $message);
-      return TRUE;
+      $ret = @fwrite($this->socket, $message);
+      if($ret)
+      {
+        return TRUE;
+      } else
+      {
+        $this->puts("error writing to socket");
+        return FALSE;
+      }
     }
 
     // public function start_connection_worker()

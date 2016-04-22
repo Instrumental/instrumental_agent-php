@@ -38,6 +38,10 @@ if(!socket_listen ($sock , 10))
 
 echo "Socket listen OK \n";
 
+$pid_fp = fopen("test/server.pid", 'w');
+fwrite($pid_fp, getmypid());
+fclose($pid_fp);
+
 echo "Waiting for incoming connections... \n";
 
 //array of client sockets
