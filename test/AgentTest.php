@@ -1,6 +1,4 @@
 <?php
-// ob_implicit_flush(1);
-
 require "lib/instrumental.php";
 
 class AgentTest extends \PHPUnit_Framework_TestCase

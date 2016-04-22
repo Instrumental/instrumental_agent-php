@@ -118,100 +118,134 @@ class Instrumental // extends Thread
         $this->queueFullWarning = $bool;
     }
 
+    function exception_error_handler($errno, $errstr, $errfile, $errline ) {
+        throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
+    }
+
+    public function handleErrors($function)
+    {
+      $ret = null;
+      try {
+        set_error_handler(array("Instrumental", "exception_error_handler"));
+        $ret = @$function();
+      } catch (Exception $e) {
+        try {
+          $this->puts("Exception caught: " . $e->getMessage());
+        } catch (Exception $ex) {}
+      } finally {
+        restore_error_handler();
+      }
+      return $ret;
+    }
+
     public function gauge($metric, $value, $time = null, $count = 1)
     {
-        $this->puts("gauge");
-        if($time)
-        {
-            if($time instanceOf DateTimeInterface)
-            {
-              $time = $time->getTimestamp();
-            } else
-            {
-              $time = (int)$time;
-            }
-        } else
-        {
-            $time = time();
-        }
+        return $this->handleErrors(function() use ($metric, $value, $time, $count) {
+          $this->puts("gauge");
+          if($time)
+          {
+              if($time instanceOf DateTimeInterface)
+              {
+                $time = $time->getTimestamp();
+              } else
+              {
+                $time = (int)$time;
+              }
+          } else
+          {
+              $time = time();
+          }
 
-        if($this->is_valid_metric($metric, $value, $time, (int)$count) &&
-           $this->send_command("gauge", $metric, $value, $time, (int)$count))
-        {
-            return $value;
-        } else
-        {
-            return null;
-        }
+          if($this->is_valid_metric($metric, $value, $time, (int)$count) &&
+             $this->send_command("gauge", $metric, $value, $time, (int)$count))
+          {
+              return $value;
+          } else
+          {
+              return null;
+          }
+        });
     }
 
     public function increment($metric, $value = 1, $time = null, $count = 1)
     {
-        $this->puts("increment");
-        if($time)
-        {
-            if($time instanceOf DateTimeInterface)
-            {
-              $time = $time->getTimestamp();
-            } else
-            {
-              $time = (int)$time;
-            }
-        } else
-        {
-            $time = time();
-        }
+        return $this->handleErrors(function() use (&$metric, &$value, &$time, &$count) {
+          $this->puts("increment");
+          if($time)
+          {
+              if($time instanceOf DateTimeInterface)
+              {
+                $time = $time->getTimestamp();
+              } else
+              {
+                $time = (int)$time;
+              }
+          } else
+          {
+              $time = time();
+          }
+          $this->puts("increment2");
 
-        if($this->is_valid_metric($metric, $value, $time, (int)$count) &&
-           $this->send_command("increment", $metric, $value, $time, (int)$count))
-        {
-            return $value;
-        } else
-        {
-            return null;
-        }
+          if($this->is_valid_metric($metric, $value, $time, (int)$count) &&
+             $this->send_command("increment", $metric, $value, $time, (int)$count))
+          {
+              $this->puts("increment3");
+              return $value;
+          } else
+          {
+              $this->puts("increment4");
+              return null;
+          }
+        });
     }
 
     public function notice($note, $time = null, $duration = 0)
     {
-        $this->puts("notice");
-        if($time)
-        {
-            if($time instanceOf DateTimeInterface)
-            {
-              $time = $time->getTimestamp();
-            } else
-            {
-              $time = (int)$time;
-            }
-        } else
-        {
-            $time = time();
-        }
+        return $this->handleErrors(function() use ($note, $time, $duration) {
+          $this->puts("notice");
+          if($time)
+          {
+              if($time instanceOf DateTimeInterface)
+              {
+                $time = $time->getTimestamp();
+              } else
+              {
+                $time = (int)$time;
+              }
+          } else
+          {
+              $time = time();
+          }
 
-        if($this->is_valid_note($note) &&
-           $this->send_command("notice", $time, (int)$duration, $note))
-        {
-            return $note;
-        } else
-        {
-            return null;
-        }
+          if($this->is_valid_note($note) &&
+             $this->send_command("notice", $time, (int)$duration, $note))
+          {
+              return $note;
+          } else
+          {
+              return null;
+          }
+        });
     }
 
     public function time($metric, $function, $multiplier = 1)
     {
-      $start = microtime(TRUE);
-      $result = $function();
-      $finish = microtime(TRUE);
-      $duration = $finish - $start;
-      $this->gauge($metric, $duration * $multiplier, $start);
-      return $result;
+      // TODO: re-raise errors in user function
+      return $this->handleErrors(function() use ($metric, $function, $multiplier) {
+        $start = microtime(TRUE);
+        $result = $function();
+        $finish = microtime(TRUE);
+        $duration = $finish - $start;
+        $this->gauge($metric, $duration * $multiplier, $start);
+        return $result;
+      });
     }
 
     public function timeMs($metric, $function)
     {
-      return $this->time($metric, $function, 1000);
+      return $this->handleErrors(function() use ($metric, $function) {
+        return $this->time($metric, $function, 1000);
+      });
     }
 
     public function is_valid_note($note)
@@ -222,8 +256,6 @@ class Instrumental // extends Thread
 
     public function is_valid_metric($metric, $value, $time, $count)
     {
-        $this->puts("is_valid_metric");
-
         $valid_metric = preg_match("/^([\d\w\-_]+\.)*[\d\w\-_]+$/i", $metric);
         $this->puts("valid_metric: $valid_metric");
         $valid_value  = preg_match("/^-?\d+(\.\d+)?(e-\d+)?$/", print_r($value, TRUE));
