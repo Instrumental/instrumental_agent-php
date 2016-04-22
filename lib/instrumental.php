@@ -122,12 +122,17 @@ class Instrumental // extends Thread
         throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
     }
 
+    public function setupErrorHandler()
+    {
+      set_error_handler(array("Instrumental", "exception_error_handler"));
+    }
+
     public function handleErrors($function)
     {
       $ret = null;
       try {
-        set_error_handler(array("Instrumental", "exception_error_handler"));
-        $ret = @$function();
+        $this->setupErrorHandler();
+        $ret = $function();
       } catch (Exception $e) {
         try {
           $this->puts("Exception caught: " . $e->getMessage());
@@ -236,12 +241,16 @@ class Instrumental // extends Thread
       $this->handleErrors(function() use ($metric, $function, $multiplier, &$result, &$exception) {
         $this->puts("time");
         $start = microtime(TRUE);
+
+        restore_error_handler();
         try {
           $result = $function();
         } catch (Exception $e) {
-          // $this->puts("time catch exception");
+          // $this->puts("time catch exception: " . print_r($e, TRUE));
           $exception = $e;
         }
+        $this->setupErrorHandler();
+
         $finish = microtime(TRUE);
         $duration = $finish - $start;
         $this->gauge($metric, $duration * $multiplier, $start);
