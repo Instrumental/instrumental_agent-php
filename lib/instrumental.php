@@ -235,7 +235,6 @@ class Instrumental // extends Thread
 
     public function time($metric, $function, $multiplier = 1)
     {
-      // TODO: figure out if there's a way to re-raise errors/warnings
       $result = null;
       $exception = null;
       $this->handleErrors(function() use ($metric, $function, $multiplier, &$result, &$exception) {
