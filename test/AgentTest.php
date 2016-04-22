@@ -24,6 +24,21 @@ class AgentTest extends \PHPUnit_Framework_TestCase
       return $I;
     }
 
+    public function testHandlesNoConnection()
+    {
+        $I = $this->factoryAgent();
+        $I->setPort(666);
+
+        $expectedData =
+          "/^$/";
+
+        $ret = $I->increment('php.increment', 2.2);
+        $this->assertEquals(null, $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
     public function testSendsIncrementCallsCorrectly()
     {
         $I = $this->factoryAgent();

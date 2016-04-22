@@ -42,7 +42,12 @@ class Instrumental // extends Thread
     public function connect()
     {
         $this->puts("connect");
-        $this->socket = stream_socket_client("tcp://{$this->host}:{$this->port}", $errno, $errorMessage, 10);
+        $this->socket = @stream_socket_client("tcp://{$this->host}:{$this->port}", $errno, $errorMessage, 10);
+        if(!$this->socket)
+        {
+          $this->puts("Connection error $errno : $errorMessage");
+          return FALSE;
+        }
 
         $version = "0.0.1";
         $hostname = gethostname();
@@ -261,10 +266,9 @@ class Instrumental // extends Thread
         $cmd = join(" ", $args) . "\n";
         if($this->getEnabled())
         {
-            $this->socket_send($cmd);
-            return TRUE;
+            return $this->socket_send($cmd);
         }
-
+        return TRUE;
     }
 
     public function socket_send($message)
@@ -279,6 +283,7 @@ class Instrumental // extends Thread
       }
       $this->puts("socket_send message: $message");
       fwrite($this->socket, $message);
+      return TRUE;
     }
 
     // public function start_connection_worker()
