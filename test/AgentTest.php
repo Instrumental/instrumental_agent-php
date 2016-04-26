@@ -125,14 +125,28 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
     }
 
-    public function testIncrementReturnsNullIfQueueIsFull()
+    public function testIncrementGaugeNoticeReturnsNullIfQueueIsFull()
     {
       $this->assertEquals("pending", "");
     }
 
-    public function testIncrementReturnsNullIfDisabled()
+    public function testIncrementGaugeNoticeReturnNullIfDisabled()
     {
-      $this->assertEquals("pending", "");
+        $I = $this->factoryAgent();
+        $I->setEnabled(FALSE);
+        $this->assertEquals(null, $I->increment("test"));
+        $this->assertEquals(null, $I->gauge("test", 1));
+        $this->assertEquals(null, $I->notice("test"));
+    }
+
+    public function testTimeAndTimeMsReturnBlockResultIfDisabled()
+    {
+        $I = $this->factoryAgent();
+        $I->setEnabled(FALSE);
+        $ret = $I->time("test", function() {return "time result";});
+        $this->assertEquals("time result", $ret);
+        $ret = $I->timeMs("test", function() {return "timeMs result";});
+        $this->assertEquals("timeMs result", $ret);
     }
 
     public function testHandlesNoConnection()
