@@ -32,8 +32,6 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
 
-        // TODO: Send something before connect should queue
-
         $expectedData =
           "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
           "authenticate test\n" .
