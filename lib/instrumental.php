@@ -23,6 +23,7 @@ class Instrumental // extends Thread
         $this->port = 8000;
         $this->last_connect_at = 0;
         $this->socket = null;
+        $this->queue_full_warning = null;
         // $this->address = $this->getIpv4AddressForHost();
         // $this->log = new Logger('name');
         // $this->log->pushHandler(new StreamHandler('/tmp/development.log', Logger::DEBUG));
@@ -316,12 +317,23 @@ class Instrumental // extends Thread
     public function send_command(...$args)
     {
         $this->puts("send_command");
-        $cmd = join(" ", $args) . "\n";
         if($this->getEnabled())
         {
-            $ret = $this->queue_message($cmd);
-            $this->send_queued_messages();
-            return $ret;
+            $cmd = join(" ", $args) . "\n";
+            if($this->queue->count() < self::MAX_BUFFER)
+            {
+                $ret = $this->queue_message($cmd);
+                $this->send_queued_messages();
+                return $ret;
+            } else {
+                if(!$this->queue_full_warning)
+                {
+                    $this->queue_full_warning = TRUE;
+                    $this->puts("Queue full(" . $this->queue->count() . "), dropping commands...");
+                }
+                $this->puts("Dropping command, queue full(" . $this->queue->count() . "): " . trim($cmd));
+                return null;
+            }
         }
         return FALSE;
     }

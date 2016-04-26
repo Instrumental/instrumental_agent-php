@@ -127,7 +127,30 @@ class AgentTest extends \PHPUnit_Framework_TestCase
 
     public function testIncrementGaugeNoticeReturnsNullIfQueueIsFull()
     {
-      $this->assertEquals("pending", "");
+        $I = $this->factoryAgent();
+        $I->setPort(666);
+        for($i=1; $i<=$I::MAX_BUFFER-1; ++$i) {
+          $ret = $I->increment('php.increment', $i);
+        }
+        $this->assertEquals(1, $I->increment("test.queue_almost_full"));
+        $this->assertEquals(null, $I->increment("test.queue_full"));
+    }
+
+    public function testTimeAndTimeMsReturnsBlockResultIfQueueIsFull()
+    {
+        $I = $this->factoryAgent();
+        $I->setPort(666);
+        for($i=1; $i<=$I::MAX_BUFFER-1; ++$i) {
+          $ret = $I->increment('php.increment', $i);
+        }
+
+        // last message that fits in the queue
+        $ret = $I->time("test", function() {return "time result";});
+        $this->assertEquals("time result", $ret);
+
+        // queue is full
+        $ret = $I->timeMs("test", function() {return "timeMs result";});
+        $this->assertEquals("timeMs result", $ret);
     }
 
     public function testIncrementGaugeNoticeReturnNullIfDisabled()
