@@ -17,7 +17,7 @@ class Instrumental // extends Thread
         $this->puts("__construct");
         // $this->pool  = new Pool(1);
         // $this->jobs  = [];
-        // $this->queue = new SplQueue();
+        $this->queue = new SplQueue();
         $this->dns_resolutions = 0;
         $this->host = "collector.instrumentalapp.com.";
         $this->port = 8000;
@@ -46,6 +46,7 @@ class Instrumental // extends Thread
         if(!$this->socket)
         {
           $this->puts("Connection error $errno : $errorMessage");
+          $this->socket = null; // TODO: delay retry?
           return FALSE;
         }
 
@@ -63,6 +64,7 @@ class Instrumental // extends Thread
         if($line != "ok\n")
         {
           $this->puts("Sending hello failed.");
+          $this->socket = null; // TODO: delay retry?
           return FALSE;
         }
 
@@ -74,6 +76,7 @@ class Instrumental // extends Thread
         if($line != "ok\n")
         {
           $this->puts("Authentication failed.");
+          $this->socket = null; // TODO: delay retry?
           return FALSE;
         }
         return TRUE;
@@ -135,7 +138,7 @@ class Instrumental // extends Thread
         $ret = $function();
       } catch (Exception $e) {
         try {
-          $this->puts("Exception caught: " . $e->getMessage());
+          $this->puts("Exception caught: " . $e->getMessage() . "\n" . $e->getTraceAsString());
         } catch (Exception $ex) {}
       } finally {
         restore_error_handler();
@@ -316,31 +319,57 @@ class Instrumental // extends Thread
         $cmd = join(" ", $args) . "\n";
         if($this->getEnabled())
         {
-            return $this->socket_send($cmd);
+            $ret = $this->queue_message($cmd);
+            $this->send_queued_messages();
+            return $ret;
         }
-        return TRUE;
+        return FALSE;
+    }
+
+    public function send_queued_messages()
+    {
+        while($this->queue->count() > 0)
+        {
+            $cmd = $this->queue->bottom();
+            $ret = $this->socket_send($cmd);
+            if($ret)
+            {
+              $this->queue->dequeue();
+            } else {
+              return $ret;
+            }
+        }
     }
 
     public function socket_send($message)
     {
-      $this->puts("socket_send");
-      if(!$this->socket)
-      {
-        if(!$this->connect())
+      $ret = $this->handleErrors(function() use ($message) {
+        $this->puts("socket_send socket: " . print_r($this->socket, TRUE));
+        if(!$this->is_connected())
         {
+          if(!$this->connect())
+          {
+            return FALSE;
+          }
+        }
+        $this->puts("socket_send message: $message");
+        $ret = @fwrite($this->socket, $message);
+        if($ret)
+        {
+          return TRUE;
+        } else
+        {
+          $this->puts("error writing to socket");
           return FALSE;
         }
-      }
-      $this->puts("socket_send message: $message");
-      $ret = @fwrite($this->socket, $message);
-      if($ret)
+      });
+      // Caught an exception, assume we're disconnected
+      if($ret === null)
       {
-        return TRUE;
-      } else
-      {
-        $this->puts("error writing to socket");
-        return FALSE;
+        $this->socket = null;
       }
+
+      return $ret;
     }
 
     // public function start_connection_worker()
@@ -389,8 +418,17 @@ class Instrumental // extends Thread
         if($this->socket)
         {
             // TODO is this really returning a boolean for timing out?
-            $timed_out = stream_get_meta_data($this->socket)[0];
-            $this->socket && $timed_out;
+            $this->puts("is_connected");
+            $this->puts("stream_get_meta_data:\n" . print_r(stream_get_meta_data($this->socket), TRUE));
+
+            $read   = array($this->socket);
+            $write  = NULL;
+            $except = NULL;
+            $this->puts("stream_select:\n" . print_r(stream_select($read, $write, $except, 0), TRUE));
+
+            // $timed_out = stream_get_meta_data($this->socket)[0];
+            // $this->socket && $timed_out;
+            return TRUE;
         } else
         {
             return FALSE;
@@ -427,8 +465,9 @@ class Instrumental // extends Thread
             //     $this->puts("current queue " . spl_object_hash($this->queue) . print_r($this->queue));
             // }
             $this->puts("queue message called ". $message);
-            $this->getQueue()->enqueue($message);
-            $this->getQueue()->enqueue("asdf");
+            $this->queue->enqueue($message);
+            return $message;
+            // $this->queue->enqueue("asdf");
             // $this->queue->enqueue("no method");
             // $fuck = new SplQueue();
             // $fuck->enqueue("fuuuuuuuuuck");

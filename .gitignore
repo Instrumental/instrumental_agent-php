@@ -7,3 +7,4 @@ vendor/
 test/server_commands_received
 test/server.log
 test/server.pid
+test/server_command_to_send

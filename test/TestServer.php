@@ -90,7 +90,7 @@ while (true)
                 if(socket_getpeername($client_socks[$i], $address, $port))
                 {
                     echo "Client $address : $port is now connected to us. \n";
-                    $fp = fopen("test/server_commands_received", 'w');
+                    fopen("test/server_commands_received", 'w');
                 }
 
                 //Send Welcome message to client
@@ -117,9 +117,13 @@ while (true)
             }
 
             print "Received line: $input\n";
+            $fp = fopen("test/server_commands_received", 'a');
             fwrite($fp, $input);
-            socket_write($client_socks[$i] , "ok\n");
-            print "Sent ok\n";
+            fclose($fp);
+
+            $response = file_get_contents("test/server_command_to_send");
+            socket_write($client_socks[$i] , $response);
+            print "Sent response: $response\n";
 
             // $n = trim($input);
             //

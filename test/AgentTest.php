@@ -7,8 +7,15 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
       // clear the test server command file
       fopen("test/server_commands_received", 'w');
+      $this->setResponse("ok");
       exec("php test/TestServer.php &> test/server.log &");
       sleep(1);
+    }
+
+    public function setResponse($command)
+    {
+      $fp = fopen("test/server_command_to_send", 'w');
+      fwrite($fp, "$command\n");
     }
 
     public function factoryAgent()
@@ -25,6 +32,8 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
 
+        // TODO: Send something before connect should queue
+
         $expectedData =
           "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
           "authenticate test\n" .
@@ -40,13 +49,90 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         echo exec("ps aux | grep php | grep TestServe[r]") . "\n";
         sleep(2);
 
-        for($i=1; $i<10000; ++$i) {
-          $ret = $I->increment('php.increment', 3);
+        // Send enough through the socket that we can tell we're disconnected.
+        for($i=1; $i<=100; ++$i) {
+          $ret = $I->increment('php.increment', $i);
+          // if($ret === null)
+          // {
+          //   break; // we don't want to fill the queue here, that would break the rest of the test
+          // }
         }
         // TODO: have agent reconnect?
-        $this->assertEquals(null, $ret);
+        // TODO: agent should queue messages it couldn't send
+        // TODO: agent shouldn't send messages until it autneticates (should keep them queued)
+        $this->assertEquals(100, $ret);
 
         $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+
+        // this should get queued and sent when it can reconnect
+        $ret = $I->increment('php.increment', 3.1);
+        $this->assertEquals(3.1, $ret);
+
+
+
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/";
+
+        $this->setUp();
+        $this->setResponse("fail");
+
+        // Queue's on failed hello
+        $ret = $I->increment('php.increment', 3.2);
+        $this->assertEquals(3.2, $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+
+
+
+
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "/";
+
+        $this->setUp();
+        $this->setResponse("ok\nfail");
+
+        // Queue's on failed auth
+        $ret = $I->increment('php.increment', 3.3);
+        $this->assertEquals(3.3, $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+
+
+
+
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "(increment php.increment [0-9]+ [0-9]+ 1\n)+" .
+          "increment php.increment 3.1 [0-9]+ 1\n" .
+          "increment php.increment 3.2 [0-9]+ 1\n" .
+          "increment php.increment 3.3 [0-9]+ 1\n" .
+          "increment php.increment 3.4 [0-9]+ 1\n" .
+          "/";
+
+        $this->setUp();
+        $this->setResponse("ok");
+
+        $ret = $I->increment('php.increment', 3.4);
+        $this->assertEquals(3.4, $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
+    public function testIncrementReturnsNullIfQueueIsFull()
+    {
+      $this->assertEquals("pending", "");
+    }
+
+    public function testIncrementReturnsNullIfDisabled()
+    {
+      $this->assertEquals("pending", "");
     }
 
     public function testHandlesNoConnection()
@@ -58,7 +144,23 @@ class AgentTest extends \PHPUnit_Framework_TestCase
           "/^$/";
 
         $ret = $I->increment('php.increment', 2.2);
-        $this->assertEquals(null, $ret);
+        $this->assertEquals(2.2, $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+
+
+        $I->setPort(4040);
+
+        $expectedData =
+          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "authenticate test\n" .
+          "increment php.increment 2.2 [0-9]+ 1\n" .
+          "increment php.increment 2.3 [0-9]+ 1\n" .
+          "/";
+
+        $ret = $I->increment('php.increment', 2.3);
+        $this->assertEquals(2.3, $ret);
         sleep(2);
 
         $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
