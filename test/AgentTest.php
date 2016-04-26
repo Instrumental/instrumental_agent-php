@@ -52,14 +52,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         // Send enough through the socket that we can tell we're disconnected.
         for($i=1; $i<=100; ++$i) {
           $ret = $I->increment('php.increment', $i);
-          // if($ret === null)
-          // {
-          //   break; // we don't want to fill the queue here, that would break the rest of the test
-          // }
         }
-        // TODO: have agent reconnect?
-        // TODO: agent should queue messages it couldn't send
-        // TODO: agent shouldn't send messages until it autneticates (should keep them queued)
         $this->assertEquals(100, $ret);
 
         $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
