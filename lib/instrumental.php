@@ -239,8 +239,8 @@ class Instrumental // extends Thread
     public function time($metric, $function, $multiplier = 1)
     {
       $result = null;
-      $exception = null;
-      $this->handleErrors(function() use ($metric, $function, $multiplier, &$result, &$exception) {
+      $user_exception = null;
+      $this->handleErrors(function() use ($metric, $function, $multiplier, &$result, &$user_exception) {
         $this->puts("time");
         $start = microtime(TRUE);
 
@@ -249,7 +249,7 @@ class Instrumental // extends Thread
           $result = $function();
         } catch (Exception $e) {
           // $this->puts("time catch exception: " . print_r($e, TRUE));
-          $exception = $e;
+          $user_exception = $e;
         }
         $this->setupErrorHandler();
 
@@ -257,10 +257,10 @@ class Instrumental // extends Thread
         $duration = $finish - $start;
         $this->gauge($metric, $duration * $multiplier, $start);
       });
-      // $this->puts("time exception: " . print_r($exception, TRUE));
-      if($exception)
+      // $this->puts("time exception: " . print_r($user_exception, TRUE));
+      if($user_exception)
       {
-        throw $exception;
+        throw $user_exception;
       }
       return $result;
     }
