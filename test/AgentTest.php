@@ -21,7 +21,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     public function factoryAgent()
     {
       $I = new Instrumental();
-      $I->setHost("127.0.0.1");
+      $I->setHost("localhost");
       $I->setPort(4040);
       $I->setApiKey("test");
       $I->setEnabled(true);

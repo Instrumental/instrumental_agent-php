@@ -15,10 +15,10 @@ class Instrumental
     {
         $this->puts("__construct");
         $this->queue = new SplQueue();
-        // $this->dns_resolutions = 0;
+        $this->dns_resolutions = 0;
         $this->host = "collector.instrumentalapp.com.";
         $this->port = 8000;
-        // $this->last_connect_at = 0;
+        $this->last_connect_at = 0;
         $this->socket = null;
         $this->queue_full_warning = null;
         $this->is_enabled = TRUE;
@@ -47,7 +47,14 @@ class Instrumental
     public function connect()
     {
         $this->puts("connect");
-        $this->socket = @stream_socket_client("tcp://{$this->host}:{$this->port}", $errno, $errorMessage, self::CONNECT_TIMEOUT);
+
+        $host = $this->ipv4_address_for_host($this->host, $this->port);
+        if(!$host)
+        {
+          return FALSE;
+        }
+
+        $this->socket = @stream_socket_client("tcp://{$host}:{$this->port}", $errno, $errorMessage, self::CONNECT_TIMEOUT);
         $this->puts("connect after stream_socket_client, stream_socket_get_name: " . stream_socket_get_name($this->socket, TRUE));
         if(!$this->is_connected())
         {
@@ -114,12 +121,17 @@ class Instrumental
         $ret = $function();
       } catch (Exception $e) {
         try {
-          $this->puts("Exception caught: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+          $this->report_exception($e);
         } catch (Exception $ex) {}
       } finally {
         restore_error_handler();
       }
       return $ret;
+    }
+
+    public function report_exception($e)
+    {
+      $this->puts("Exception caught: " . $e->getMessage() . "\n" . $e->getTraceAsString());
     }
 
     public function gauge($metric, $value, $time = null, $count = 1)
@@ -409,6 +421,35 @@ class Instrumental
             $this->puts("queue message called ". $message);
             $this->queue->enqueue($message);
             return $message;
+        }
+    }
+
+    public function ipv4_address_for_host($host, $port, $moment_to_connect = null)
+    {
+        $this->puts("ipv4_address_for_host");
+        try {
+            if($moment_to_connect)
+            {
+                // do nothing
+            } else
+            {
+                $moment_to_connect = time();
+            }
+            $this->dns_resolutions   = $this->dns_resolutions + 1;
+            $time_since_last_connect = $moment_to_connect - $this->last_connect_at;
+            if($this->dns_resolutions < self::RESOLUTION_FAILURES_BEFORE_WAITING || $time_since_last_connect >= self::RESOLUTION_WAIT)
+            {
+                $this->last_connect_at = $moment_to_connect;
+                $resolver = new Net_DNS2_Resolver();
+                $resolver->timeout = self::RESOLVE_TIMEOUT;
+                $address = $resolver->query($host)->answer[0]->address;
+                $this->dns_resolutions = 0;
+                return $address;
+            }
+        } catch (Exception $e) {
+            $this->puts("Couldn't resolve address for $host:$port", "warn");
+            $this->report_exception($e);
+            return null;
         }
     }
 }
