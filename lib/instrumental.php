@@ -1,9 +1,7 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
-// use Monolog\Logger;
-// use Monolog\Handler\StreamHandler;
 
-class Instrumental // extends Thread
+class Instrumental
 {
 
 
@@ -15,19 +13,14 @@ class Instrumental // extends Thread
     function __construct()
     {
         $this->puts("__construct");
-        // $this->pool  = new Pool(1);
-        // $this->jobs  = [];
         $this->queue = new SplQueue();
-        $this->dns_resolutions = 0;
+        // $this->dns_resolutions = 0;
         $this->host = "collector.instrumentalapp.com.";
         $this->port = 8000;
-        $this->last_connect_at = 0;
+        // $this->last_connect_at = 0;
         $this->socket = null;
         $this->queue_full_warning = null;
-        // $this->address = $this->getIpv4AddressForHost();
-        // $this->log = new Logger('name');
-        // $this->log->pushHandler(new StreamHandler('/tmp/development.log', Logger::DEBUG));
-
+        $this->is_enabled = TRUE;
     }
 
     public function setHost($host)
@@ -38,6 +31,16 @@ class Instrumental // extends Thread
     public function setPort($port)
     {
       $this->port = $port;
+    }
+
+    public function setApiKey($api_key)
+    {
+        $this->api_key = $api_key;
+    }
+
+    public function setEnabled($enabled)
+    {
+        $this->is_enabled = $enabled;
     }
 
     public function connect()
@@ -90,36 +93,6 @@ class Instrumental // extends Thread
         // flush();
         ob_flush();
         // error_log("$message\n", 3, "logs/development.log");
-    }
-
-    public function setApiKey($api_key)
-    {
-        $this->api_key = $api_key;
-    }
-
-    public function setEnabled($enabled)
-    {
-        $this->enabled = $enabled;
-    }
-
-    public function getEnabled()
-    {
-        return $this->enabled;
-    }
-
-    public function getSocket()
-    {
-        return $this->socket;
-    }
-
-    public function getQueue()
-    {
-        return $this->queue;
-    }
-
-    public function setQueueFullWarning($bool)
-    {
-        $this->queueFullWarning = $bool;
     }
 
     function exception_error_handler($errno, $errstr, $errfile, $errline ) {
@@ -317,7 +290,7 @@ class Instrumental // extends Thread
     public function send_command(...$args)
     {
         $this->puts("send_command");
-        if($this->getEnabled())
+        if($this->is_enabled)
         {
             $cmd = join(" ", $args) . "\n";
             if($this->queue->count() < self::MAX_BUFFER)
@@ -384,35 +357,6 @@ class Instrumental // extends Thread
       return $ret;
     }
 
-    // public function start_connection_worker()
-    // {
-    //     if($this->getEnabled())
-    //     {
-    //         $this->disconnect();
-    //         $address = $this->getIpv4AddressForHost();
-    //         $this->puts("have an address" . $address);
-    //         if($address)
-    //         {
-    //             $this->setPid = getmypid();
-    //             $this->setFailureCount = 0;
-    //             // $this->setWorker = new WorkerThread();
-    //             $this->puts("about to start thread");
-    //             $this->start();
-    //         }
-    //     }
-    // }
-
-    public function getIpv4AddressForHost()
-    {
-        // $this->dns_resolutions = $this->dns_resolutions + 1;
-        // TODO timeouts and waiting?
-        // Set timeout and retries to 1 to have a maximum execution
-        // time of 1 second for the DNS lookup:
-        // tried this but it didn't appear to change the behavior
-        // putenv('RES_OPTIONS=retrans:1 retry:1 timeout:1 attempts:1');
-        return gethostbyname($this->host);
-    }
-
     public function disconnect()
     {
         $ret = $this->handleErrors(function() {
@@ -456,78 +400,13 @@ class Instrumental // extends Thread
         }
     }
 
-    // worker loop
-    public function run()
-    {
-        $this->puts("beginning of run");
-        // TODO should have connection timeout
-        $this->socket = stream_socket_client("tcp://{$this->address}:{$this->port}", $errno, $errorMessage);
-
-        $hello_options = [
-            "php/instrumental_agent/{$this->version}",
-            $this->getHostname(),
-            $this->getPid(),
-            $this->getPhpRuntime()
-        ];
-
-        $this->send_with_reply_timeout(join(" ", $hello_options));
-        $this->send_with_reply_timeout("authenticate {$this->api_key}");
-        $this->puts("end of run");
-    }
-
-
     public function queue_message($message)
     {
-        if($this->getEnabled())
+        if($this->is_enabled)
         {
-            // while ($this->queue->isEmpty()) {
-            //     $this->queue->enqueue("asdf");
-            //     sleep(1);
-            //     $this->puts("current queue " . spl_object_hash($this->queue) . print_r($this->queue));
-            // }
             $this->puts("queue message called ". $message);
             $this->queue->enqueue($message);
             return $message;
-            // $this->queue->enqueue("asdf");
-            // $this->queue->enqueue("no method");
-            // $fuck = new SplQueue();
-            // $fuck->enqueue("fuuuuuuuuuck");
-            // $this->queue = $fuck;
-            // $this->puts("fuck queue " . print_r($fuck));
-            // $this->puts("current queue size " . $this->queue->count());
-            // $this->puts("current queue " . print_r($this->queue));
-            // $this->puts("current queue " . print_r($this->getQueue()));
-            // $this->puts("queue equality " . print_r($this->getQueue() === $this->queue));
-        }
-    }
-
-    public function ipv4_address_for_host($host, $port, $moment_to_connect = null)
-    {
-        try {
-            if($moment_to_connect)
-            {
-                // do nothing
-            } else
-            {
-                $moment_to_connect = time();
-            }
-
-
-            $this->dns_resolutions   = $this->dns_resolutions + 1;
-            $time_since_last_connect = $moment_to_connect - $this->last_connect_at;
-            if($this->dns_resolutions < self::RESOLUTION_FAILURES_BEFORE_WAITING || $time_since_last_connect >= self::RESOLUTION_WAIT)
-            {
-                $this->last_connect_at = $moment_to_connect;
-                $resolver = new Net_DNS2_Resolver();
-                $resolver->timeout = self::RESOLVE_TIMEOUT;
-                $address = $resolver->query($host)->answer[0]->address;
-                $this->dns_resolutions = 0;
-                return $address;
-            }
-        } catch (Exception $e) {
-            $this->puts("Couldn't resolve address for #{host}:#{port}", "warn");
-            $this->report_exception($e);
-            return null;
         }
     }
 }

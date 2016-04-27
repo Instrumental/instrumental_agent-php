@@ -497,15 +497,4 @@ class AgentTest extends \PHPUnit_Framework_TestCase
 
         $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
     }
-
-    // public function testHostnameResolution()
-    // {
-    //     $expectedData = "127.0.0.1";
-    //
-    //     $I = new Instrumental();
-    //
-    //     $address = $I->ipv4_address_for_host('localhost', 80);
-    //
-    //     $this->assertEquals($expectedData, $address);
-    // }
 }
