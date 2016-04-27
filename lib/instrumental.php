@@ -9,6 +9,7 @@ class Instrumental
     const RESOLUTION_FAILURES_BEFORE_WAITING = 3;
     const RESOLUTION_WAIT = 30;
     const RESOLVE_TIMEOUT = 1;
+    const CONNECT_TIMEOUT = 10;
 
     function __construct()
     {
@@ -46,7 +47,8 @@ class Instrumental
     public function connect()
     {
         $this->puts("connect");
-        $this->socket = @stream_socket_client("tcp://{$this->host}:{$this->port}", $errno, $errorMessage, 10);
+        $this->socket = @stream_socket_client("tcp://{$this->host}:{$this->port}", $errno, $errorMessage, self::CONNECT_TIMEOUT);
+        $this->puts("connect after stream_socket_client, stream_socket_get_name: " . stream_socket_get_name($this->socket, TRUE));
         if(!$this->is_connected())
         {
           $this->puts("Connection error $errno : $errorMessage");
@@ -89,7 +91,7 @@ class Instrumental
     function puts($message)
     {
         // $this->log->addError('Bar');
-        echo "$message\n";
+        echo time() . " $message\n";
         // flush();
         ob_flush();
         // error_log("$message\n", 3, "logs/development.log");
