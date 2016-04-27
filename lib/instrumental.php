@@ -44,10 +44,10 @@ class Instrumental // extends Thread
     {
         $this->puts("connect");
         $this->socket = @stream_socket_client("tcp://{$this->host}:{$this->port}", $errno, $errorMessage, 10);
-        if(!$this->socket)
+        if(!$this->is_connected())
         {
           $this->puts("Connection error $errno : $errorMessage");
-          $this->socket = null; // TODO: delay retry?
+          $this->disconnect(); // TODO: delay retry?
           return FALSE;
         }
 
@@ -65,7 +65,7 @@ class Instrumental // extends Thread
         if($line != "ok\n")
         {
           $this->puts("Sending hello failed.");
-          $this->socket = null; // TODO: delay retry?
+          $this->disconnect(); // TODO: delay retry?
           return FALSE;
         }
 
@@ -77,7 +77,7 @@ class Instrumental // extends Thread
         if($line != "ok\n")
         {
           $this->puts("Authentication failed.");
-          $this->socket = null; // TODO: delay retry?
+          $this->disconnect(); // TODO: delay retry?
           return FALSE;
         }
         return TRUE;
@@ -378,7 +378,7 @@ class Instrumental // extends Thread
       // Caught an exception, assume we're disconnected
       if($ret === null)
       {
-        $this->socket = null;
+        $this->disconnect();
       }
 
       return $ret;
@@ -415,14 +415,23 @@ class Instrumental // extends Thread
 
     public function disconnect()
     {
-        if($this->is_connected())
+        $ret = $this->handleErrors(function() {
+            if($this->is_connected())
+            {
+                $this->puts("Disconnecting...");
+                // TODO should have time out for flushing
+                // TODO does this really flush?
+                fflush($this->socket);
+                fclose($this->socket);
+                return TRUE;
+            }
+            return FALSE;
+        });
+        if($ret === null)
         {
-            // TODO should have time out for flushing
-            // TODO does this really flush?
-            fflush($this->socket);
-            fclose($this->socket);
-            $this->socket = null;
+            $this->puts("Error closing socket");
         }
+        $this->socket = null;
     }
 
     public function is_connected()
