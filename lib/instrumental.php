@@ -128,10 +128,10 @@ class Instrumental
       try {
         $this->setupErrorHandler();
         $ret = $function();
-      } catch (Exception $e) {
+      } catch (Throwable $e) {
         try {
           $this->report_exception($e);
-        } catch (Exception $ex) {}
+        } catch (Throwable $ex) {}
       } finally {
         restore_error_handler();
       }
