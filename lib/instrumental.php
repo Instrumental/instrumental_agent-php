@@ -4,12 +4,13 @@ require __DIR__ . '/../vendor/autoload.php';
 class Instrumental
 {
 
-
+    // TODO: Review these constants for applicability in a blocking world
     const MAX_BUFFER = 5000;
+    const SEND_REPLY_TIMEOUT = 1; // NOTE: setting this low since the agent is synchronous
     const RESOLUTION_FAILURES_BEFORE_WAITING = 3;
     const RESOLUTION_WAIT = 30;
     const RESOLVE_TIMEOUT = 1;
-    const CONNECT_TIMEOUT = 10;
+    const CONNECT_TIMEOUT = 1;
 
     function __construct()
     {
@@ -54,8 +55,10 @@ class Instrumental
           return FALSE;
         }
 
+        // NOTE: This timeout doesn't apply to DNS, but does apply to the actual connecting
         $this->socket = @stream_socket_client("tcp://{$host}:{$this->port}", $errno, $errorMessage, self::CONNECT_TIMEOUT);
         $this->puts("connect after stream_socket_client, stream_socket_get_name: " . stream_socket_get_name($this->socket, TRUE));
+        stream_set_timeout($this->socket, self::SEND_REPLY_TIMEOUT, 0);
         if(!$this->is_connected())
         {
           $this->puts("Connection error $errno : $errorMessage");
@@ -70,8 +73,14 @@ class Instrumental
         $platform = php_uname();
         $cmd = "hello version ruby/instrumental_agent/$version hostname $hostname pid $pid runtime $runtime platform $platform\n";
 
+        // $this->puts("Sleeping. Enable packet loss to test.");
+        // sleep(10);
+        // $this->puts("Resuming.");
+
+        // NOTE: dropping packets didn't appear to affect sending
         $this->socket_send($cmd);
         $this->puts("connect fgets");
+        // NOTE: dropping packets did affect fgets, and SEND_REPLY_TIMEOUT did apply
         $line = fgets($this->socket, 1024);
         $this->puts("connect $line");
         if($line != "ok\n")
@@ -374,13 +383,16 @@ class Instrumental
     public function disconnect()
     {
         $ret = $this->handleErrors(function() {
+            $this->puts("disconnect");
             if($this->is_connected())
             {
                 $this->puts("Disconnecting...");
-                // TODO should have time out for flushing
-                // TODO does this really flush?
+                // NOTE: In testing, fflush returned immediately when all packets were being dropped
                 fflush($this->socket);
+                $this->puts("disconnect after fflush");
+                // NOTE: In testing, fclose returned immediately when all packets were being dropped
                 fclose($this->socket);
+                $this->puts("disconnect after fclose");
                 return TRUE;
             }
             return FALSE;
@@ -396,7 +408,6 @@ class Instrumental
     {
         if($this->socket)
         {
-            // TODO is this really returning a boolean for timing out?
             $this->puts("is_connected");
             $this->puts("stream_get_meta_data:\n" . print_r(stream_get_meta_data($this->socket), TRUE));
 
@@ -405,6 +416,7 @@ class Instrumental
             $except = NULL;
             $this->puts("stream_select:\n" . print_r(stream_select($read, $write, $except, 0), TRUE));
 
+            // TODO is this really returning a boolean for timing out?
             // $timed_out = stream_get_meta_data($this->socket)[0];
             // $this->socket && $timed_out;
             return TRUE;
