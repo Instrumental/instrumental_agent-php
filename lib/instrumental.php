@@ -408,15 +408,17 @@ class Instrumental
     {
         if($this->socket)
         {
-            $this->puts("is_connected");
-            $this->puts("stream_get_meta_data:\n" . print_r(stream_get_meta_data($this->socket), TRUE));
+            // NOTE: None of the approaches below appear to give reliable (any?) information on socked closed status.
+            // My general approach has been that if anything goes wrong call `disconnect` which clears the socket,
+            // so I'm relying on the existance of a socket to determine status.
+            // $this->puts("is_connected");
+            // $this->puts("stream_get_meta_data:\n" . print_r(stream_get_meta_data($this->socket), TRUE));
+            //
+            // $read   = array($this->socket);
+            // $write  = NULL;
+            // $except = NULL;
+            // $this->puts("stream_select:\n" . print_r(stream_select($read, $write, $except, 0), TRUE));
 
-            $read   = array($this->socket);
-            $write  = NULL;
-            $except = NULL;
-            $this->puts("stream_select:\n" . print_r(stream_select($read, $write, $except, 0), TRUE));
-
-            // TODO is this really returning a boolean for timing out?
             // $timed_out = stream_get_meta_data($this->socket)[0];
             // $this->socket && $timed_out;
             return TRUE;
