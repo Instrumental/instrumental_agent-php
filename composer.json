@@ -1,6 +1,7 @@
 {
     "name": "instrumental/instrumental_agent",
     "description": "Track anything.",
+    "license": "MIT",
     "require": {
         "php": ">=7",
         "pear/net_dns2": "~1.4"
