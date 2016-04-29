@@ -1,6 +1,6 @@
 {
     "name": "instrumental/instrumental_agent",
-    "description": "Track anything.",
+    "description": "WARNING: WORK IN PROGRESS. NOT PRODUCTION READY.",
     "license": "MIT",
     "require": {
         "php": ">=7",
