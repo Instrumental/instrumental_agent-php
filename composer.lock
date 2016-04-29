@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "c18f2fa3f2f72f6d37463b1c97895873",
+    "hash": "c8296a0cc4b6989c0901dee50bd550ae",
     "packages": [
         {
             "name": "pear/net_dns2",
@@ -459,6 +459,8 @@
     "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
+    "platform": {
+        "php": ">=7"
+    },
     "platform-dev": []
 }
