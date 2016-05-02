@@ -45,7 +45,7 @@ Want to track an event (like an application deploy, or downtime)? You can captur
 
 ```php
 $I->notice('Jeffy deployed rev ef3d6a'); # instantaneous event
-$I->notice('Testing socket buffer increase', 3.days.ago, 20.minutes); # an event with a duration
+$I->notice('Testing socket buffer increase', time() - (3*24*60*60), 20*60); # an event (three days ago) with a duration (20 minutes)
 ```
 
 ## Agent Control
