@@ -5,6 +5,7 @@ namespace Instrumental;
 
 class Agent
 {
+    const VERSION = "0.0.7";
 
     const MAX_BUFFER = 5000;
     const SEND_REPLY_TIMEOUT = 1;
@@ -67,12 +68,11 @@ class Agent
           return FALSE;
         }
 
-        $version = "0.0.1";
         $hostname = gethostname();
         $pid = getmypid();
         $runtime = phpversion();
         $platform = preg_replace('/\s+/', '_', php_uname());
-        $cmd = "hello version php/instrumental_agent/$version hostname $hostname pid $pid runtime $runtime platform $platform\n";
+        $cmd = "hello version php/instrumental_agent/" . self::VERSION . " hostname $hostname pid $pid runtime $runtime platform $platform\n";
 
         // $this->puts("Sleeping. Enable packet loss to test.");
         // sleep(10);

@@ -2,7 +2,7 @@
 
 class AgentTest extends \PHPUnit_Framework_TestCase
 {
-    const HELLO_REGEX = "hello version php\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin_[^\s]+RELEASE_X86_64_x86_64\n";
+    const HELLO_REGEX = "hello version php\/instrumental_agent\/" . \Instrumental\Agent::VERSION . " hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin_[^\s]+RELEASE_X86_64_x86_64\n";
 
     public function setUp()
     {
