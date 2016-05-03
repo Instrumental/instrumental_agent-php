@@ -39,7 +39,7 @@ $post = $I->time_ms('query_time_in_ms', function(){     # prefer milliseconds?
 });
 ```
 
-**Note**: For your app's safety, the agent is meant to isolate your app from any problems our service might suffer. If it is unable to connect to the service, it will discard data after reaching a low memory threshold.
+**Note**: If it is unable to connect to the service, it will discard data after reaching a low memory threshold.
 
 Want to track an event (like an application deploy, or downtime)? You can capture events that are instantaneous, or events that happen over a period of time.
 
