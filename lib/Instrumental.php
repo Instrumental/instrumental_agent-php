@@ -435,6 +435,7 @@ class Instrumental
         if($this->is_enabled)
         {
             $this->puts("queue message called ". $message);
+            $this->puts("queue message, queue size before add: ". $this->queue->count());
             $this->queue->enqueue($message);
             return $message;
         }
