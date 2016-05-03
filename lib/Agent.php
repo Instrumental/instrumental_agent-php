@@ -98,6 +98,7 @@ class Agent
         $this->puts("connect $line");
         if($line != "ok\n")
         {
+          // TODO: Make message a little more helpful for the user when auth fails, they've probably misconfigured
           $this->puts("Authentication failed.");
           $this->disconnect(); // TODO: delay retry?
           return FALSE;
