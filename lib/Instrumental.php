@@ -17,7 +17,7 @@ class Instrumental
     function __construct()
     {
         $this->puts("__construct");
-        $this->queue = new SplQueue();
+        $this->queue = new \SplQueue();
         $this->dns_resolutions = 0;
         $this->host = "collector.instrumentalapp.com.";
         $this->port = 8000;
@@ -116,12 +116,12 @@ class Instrumental
     }
 
     function exception_error_handler($errno, $errstr, $errfile, $errline ) {
-        throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
+        throw new \ErrorException($errstr, $errno, 0, $errfile, $errline);
     }
 
     public function setupErrorHandler()
     {
-      set_error_handler(array("Instrumental", "exception_error_handler"));
+      set_error_handler(array($this, "exception_error_handler"));
     }
 
     public function handleErrors($function)
@@ -130,10 +130,10 @@ class Instrumental
       try {
         $this->setupErrorHandler();
         $ret = $function();
-      } catch (Throwable $e) {
+      } catch (\Throwable $e) {
         try {
           $this->report_exception($e);
-        } catch (Throwable $ex) {}
+        } catch (\Throwable $ex) {}
       } finally {
         restore_error_handler();
       }
@@ -151,7 +151,7 @@ class Instrumental
           $this->puts("gauge");
           if($time)
           {
-              if($time instanceOf DateTimeInterface)
+              if($time instanceOf \DateTimeInterface)
               {
                 $time = $time->getTimestamp();
               } else
@@ -180,7 +180,7 @@ class Instrumental
           $this->puts("increment");
           if($time)
           {
-              if($time instanceOf DateTimeInterface)
+              if($time instanceOf \DateTimeInterface)
               {
                 $time = $time->getTimestamp();
               } else
@@ -212,7 +212,7 @@ class Instrumental
           $this->puts("notice");
           if($time)
           {
-              if($time instanceOf DateTimeInterface)
+              if($time instanceOf \DateTimeInterface)
               {
                 $time = $time->getTimestamp();
               } else
@@ -246,7 +246,7 @@ class Instrumental
         restore_error_handler();
         try {
           $result = $function();
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
           // $this->puts("time catch exception: " . print_r($e, TRUE));
           $user_exception = $e;
         }
@@ -456,13 +456,13 @@ class Instrumental
             if($this->dns_resolutions < self::RESOLUTION_FAILURES_BEFORE_WAITING || $time_since_last_connect >= self::RESOLUTION_WAIT)
             {
                 $this->last_connect_at = $moment_to_connect;
-                $resolver = new Net_DNS2_Resolver();
+                $resolver = new \Net_DNS2_Resolver();
                 $resolver->timeout = self::RESOLVE_TIMEOUT;
                 $address = $resolver->query($host)->answer[0]->address;
                 $this->dns_resolutions = 0;
                 return $address;
             }
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             $this->puts("Couldn't resolve address for $host:$port", "warn");
             $this->report_exception($e);
             return null;

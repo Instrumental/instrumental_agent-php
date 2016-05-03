@@ -1,5 +1,4 @@
 <?php
-require "lib/instrumental.php";
 
 class AgentTest extends \PHPUnit_Framework_TestCase
 {
@@ -20,7 +19,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
 
     public function factoryAgent()
     {
-      $I = new Instrumental();
+      $I = new \Instrumental\Instrumental();
       $I->setHost("localhost");
       $I->setPort(4040);
       $I->setApiKey("test");
@@ -486,13 +485,13 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         try {
           $I->time("php.time", function(){
             sleep(1);
-            $foo = "test" . new Instrumental();
+            $foo = "test" . new \Instrumental\Instrumental();
           });
         } catch (Exception $e) {
           $ret = $e;
         }
         // The agent error handling doesn't affect the user error, the underlying error handling takes effect.
-        $this->assertEquals("Object of class Instrumental could not be converted to string", $ret->getMessage());
+        $this->assertEquals("Object of class Instrumental\Instrumental could not be converted to string", $ret->getMessage());
         sleep(2);
 
         $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
