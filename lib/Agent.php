@@ -15,7 +15,9 @@ class Agent
 
     function __construct()
     {
-        $this->puts("__construct");
+        $this->log = new \Monolog\Logger("instrumental");
+        $this->log->pushHandler(new \Monolog\Handler\ErrorLogHandler());
+        $this->log->debug("__construct");
         $this->queue = new \SplQueue();
         $this->dns_resolutions = 0;
         $this->host = "collector.instrumentalapp.com.";
@@ -46,9 +48,11 @@ class Agent
         $this->is_enabled = $enabled;
     }
 
+    // TODO: Move public API methods to the top
+    // TODO: Make private functions private
     public function connect()
     {
-        $this->puts("connect");
+        $this->log->debug("connect");
 
         $host = $this->ipv4_address_for_host($this->host, $this->port);
         if(!$host)
@@ -58,11 +62,11 @@ class Agent
 
         // NOTE: This timeout doesn't apply to DNS, but does apply to the actual connecting
         $this->socket = @stream_socket_client("tcp://{$host}:{$this->port}", $errno, $errorMessage, self::CONNECT_TIMEOUT);
-        $this->puts("connect after stream_socket_client, stream_socket_get_name: " . stream_socket_get_name($this->socket, TRUE));
+        $this->log->debug("connect after stream_socket_client, stream_socket_get_name: " . stream_socket_get_name($this->socket, TRUE));
         stream_set_timeout($this->socket, self::SEND_REPLY_TIMEOUT, 0);
         if(!$this->is_connected())
         {
-          $this->puts("Connection error $errno : $errorMessage");
+          $this->log->error("Connection error $errno : $errorMessage");
           $this->disconnect(); // TODO: delay retry?
           return FALSE;
         }
@@ -73,44 +77,36 @@ class Agent
         $platform = preg_replace('/\s+/', '_', php_uname());
         $cmd = "hello version php/instrumental_agent/" . self::VERSION . " hostname $hostname pid $pid runtime $runtime platform $platform\n";
 
-        // $this->puts("Sleeping. Enable packet loss to test.");
+        // $this->log->debug("Sleeping. Enable packet loss to test.");
         // sleep(10);
-        // $this->puts("Resuming.");
+        // $this->log->debug("Resuming.");
 
         // NOTE: dropping packets didn't appear to affect sending
         $this->socket_send($cmd);
-        $this->puts("connect fgets");
+        $this->log->debug("connect fgets");
         // NOTE: dropping packets did affect fgets, and SEND_REPLY_TIMEOUT did apply
         $line = fgets($this->socket, 1024);
-        $this->puts("connect $line");
+        $this->log->debug("connect $line");
         if($line != "ok\n")
         {
-          $this->puts("Sending hello failed.");
+          $this->log->error("Sending hello failed.");
           $this->disconnect(); // TODO: delay retry?
           return FALSE;
         }
 
         $cmd = "authenticate $this->api_key\n";
         $this->socket_send($cmd);
-        $this->puts("connect fgets");
+        $this->log->debug("connect fgets");
         $line = fgets($this->socket, 1024);
-        $this->puts("connect $line");
+        $this->log->debug("connect $line");
         if($line != "ok\n")
         {
           // TODO: Make message a little more helpful for the user when auth fails, they've probably misconfigured
-          $this->puts("Authentication failed.");
+          $this->log->error("Authentication failed.");
           $this->disconnect(); // TODO: delay retry?
           return FALSE;
         }
         return TRUE;
-    }
-
-    function puts($message)
-    {
-        // $this->log->addError('Bar');
-        echo time() . " $message\n";
-        flush();
-        // error_log("$message\n", 3, "logs/development.log");
     }
 
     function exception_error_handler($errno, $errstr, $errfile, $errline ) {
@@ -140,13 +136,13 @@ class Agent
 
     public function report_exception($e)
     {
-      $this->puts("Exception caught: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+      $this->log->error("Exception caught: " . $e->getMessage() . "\n" . $e->getTraceAsString());
     }
 
     public function gauge($metric, $value, $time = null, $count = 1)
     {
         return $this->handleErrors(function() use ($metric, $value, $time, $count) {
-          $this->puts("gauge");
+          $this->log->debug("gauge");
           if($time)
           {
               if($time instanceOf \DateTimeInterface)
@@ -175,7 +171,7 @@ class Agent
     public function increment($metric, $value = 1, $time = null, $count = 1)
     {
         return $this->handleErrors(function() use (&$metric, &$value, &$time, &$count) {
-          $this->puts("increment");
+          $this->log->debug("increment");
           if($time)
           {
               if($time instanceOf \DateTimeInterface)
@@ -189,16 +185,16 @@ class Agent
           {
               $time = time();
           }
-          $this->puts("increment2");
+          $this->log->debug("increment2");
 
           if($this->is_valid_metric($metric, $value, $time, (int)$count) &&
              $this->send_command("increment", $metric, $value, $time, (int)$count))
           {
-              $this->puts("increment3");
+              $this->log->debug("increment3");
               return $value;
           } else
           {
-              $this->puts("increment4");
+              $this->log->debug("increment4");
               return null;
           }
         });
@@ -207,7 +203,7 @@ class Agent
     public function notice($note, $time = null, $duration = 0)
     {
         return $this->handleErrors(function() use ($note, $time, $duration) {
-          $this->puts("notice");
+          $this->log->debug("notice");
           if($time)
           {
               if($time instanceOf \DateTimeInterface)
@@ -238,14 +234,14 @@ class Agent
       $result = null;
       $user_exception = null;
       $this->handleErrors(function() use ($metric, $function, $multiplier, &$result, &$user_exception) {
-        $this->puts("time");
+        $this->log->debug("time");
         $start = microtime(TRUE);
 
         restore_error_handler();
         try {
           $result = $function();
         } catch (\Throwable $e) {
-          // $this->puts("time catch exception: " . print_r($e, TRUE));
+          // $this->log->debug("time catch exception: " . print_r($e, TRUE));
           $user_exception = $e;
         }
         $this->setupErrorHandler();
@@ -254,7 +250,7 @@ class Agent
         $duration = $finish - $start;
         $this->gauge($metric, $duration * $multiplier, $start);
       });
-      // $this->puts("time exception: " . print_r($user_exception, TRUE));
+      // $this->log->debug("time exception: " . print_r($user_exception, TRUE));
       if($user_exception)
       {
         throw $user_exception;
@@ -269,16 +265,16 @@ class Agent
 
     public function is_valid_note($note)
     {
-      $this->puts("is_valid_note");
+      $this->log->debug("is_valid_note");
       return preg_match("/[\n\r]/", $note) === 0;
     }
 
     public function is_valid_metric($metric, $value, $time, $count)
     {
         $valid_metric = preg_match("/^([\d\w\-_]+\.)*[\d\w\-_]+$/i", $metric);
-        $this->puts("valid_metric: $valid_metric");
+        $this->log->debug("valid_metric: $valid_metric");
         $valid_value  = preg_match("/^-?\d+(\.\d+)?(e-\d+)?$/", print_r($value, TRUE));
-        $this->puts("valid_value: $valid_value");
+        $this->log->debug("valid_value: $valid_value");
 
         if($valid_metric && $valid_value)
         {
@@ -301,18 +297,18 @@ class Agent
     public function report_invalid_metric($metric)
     {
       $this->increment("agent.invalid_metric");
-      $this->puts("Invalid metric " . print_r($metric, TRUE));
+      $this->log->warn("Invalid metric " . print_r($metric, TRUE));
     }
 
     public function report_invalid_value($metric, $value)
     {
       $this->increment("agent.invalid_value");
-      $this->puts("Invalid value " . print_r($value, TRUE) . " for " . print_r($metric, TRUE));
+      $this->log->warn("Invalid value " . print_r($value, TRUE) . " for " . print_r($metric, TRUE));
     }
 
     public function send_command(...$args)
     {
-        $this->puts("send_command");
+        $this->log->debug("send_command");
         if($this->is_enabled)
         {
             $cmd = join(" ", $args) . "\n";
@@ -325,9 +321,9 @@ class Agent
                 if(!$this->queue_full_warning)
                 {
                     $this->queue_full_warning = TRUE;
-                    $this->puts("Queue full(" . $this->queue->count() . "), dropping commands...");
+                    $this->log->warn("Queue full(" . $this->queue->count() . "), dropping commands...");
                 }
-                $this->puts("Dropping command, queue full(" . $this->queue->count() . "): " . trim($cmd));
+                $this->log->debug("Dropping command, queue full(" . $this->queue->count() . "): " . trim($cmd));
                 return null;
             }
         }
@@ -352,7 +348,7 @@ class Agent
     public function socket_send($message)
     {
       $ret = $this->handleErrors(function() use ($message) {
-        $this->puts("socket_send socket: " . print_r($this->socket, TRUE));
+        $this->log->debug("socket_send socket: " . print_r($this->socket, TRUE));
         if(!$this->is_connected())
         {
           if(!$this->connect())
@@ -360,14 +356,14 @@ class Agent
             return FALSE;
           }
         }
-        $this->puts("socket_send message: $message");
+        $this->log->debug("socket_send message: $message");
         $ret = @fwrite($this->socket, $message);
         if($ret)
         {
           return TRUE;
         } else
         {
-          $this->puts("error writing to socket");
+          $this->log->debug("error writing to socket");
           return FALSE;
         }
       });
@@ -383,23 +379,23 @@ class Agent
     public function disconnect()
     {
         $ret = $this->handleErrors(function() {
-            $this->puts("disconnect");
+            $this->log->debug("disconnect");
             if($this->is_connected())
             {
-                $this->puts("Disconnecting...");
+                $this->log->debug("Disconnecting...");
                 // NOTE: In testing, fflush returned immediately when all packets were being dropped
                 fflush($this->socket);
-                $this->puts("disconnect after fflush");
+                $this->log->debug("disconnect after fflush");
                 // NOTE: In testing, fclose returned immediately when all packets were being dropped
                 fclose($this->socket);
-                $this->puts("disconnect after fclose");
+                $this->log->debug("disconnect after fclose");
                 return TRUE;
             }
             return FALSE;
         });
         if($ret === null)
         {
-            $this->puts("Error closing socket");
+            $this->log->debug("Error closing socket");
         }
         $this->socket = null;
     }
@@ -411,13 +407,13 @@ class Agent
             // NOTE: None of the approaches below appear to give reliable (any?) information on socked closed status.
             // My general approach has been that if anything goes wrong call `disconnect` which clears the socket,
             // so I'm relying on the existance of a socket to determine status.
-            // $this->puts("is_connected");
-            // $this->puts("stream_get_meta_data:\n" . print_r(stream_get_meta_data($this->socket), TRUE));
+            // $this->log->debug("is_connected");
+            // $this->log->debug("stream_get_meta_data:\n" . print_r(stream_get_meta_data($this->socket), TRUE));
             //
             // $read   = array($this->socket);
             // $write  = NULL;
             // $except = NULL;
-            // $this->puts("stream_select:\n" . print_r(stream_select($read, $write, $except, 0), TRUE));
+            // $this->log->debug("stream_select:\n" . print_r(stream_select($read, $write, $except, 0), TRUE));
 
             // $timed_out = stream_get_meta_data($this->socket)[0];
             // $this->socket && $timed_out;
@@ -432,8 +428,8 @@ class Agent
     {
         if($this->is_enabled)
         {
-            $this->puts("queue message called ". $message);
-            $this->puts("queue message, queue size before add: ". $this->queue->count());
+            $this->log->debug("queue message called ". $message);
+            $this->log->debug("queue message, queue size before add: ". $this->queue->count());
             $this->queue->enqueue($message);
             return $message;
         }
@@ -441,7 +437,7 @@ class Agent
 
     public function ipv4_address_for_host($host, $port, $moment_to_connect = null)
     {
-        $this->puts("ipv4_address_for_host");
+        $this->log->debug("ipv4_address_for_host");
         try {
             if($moment_to_connect)
             {
@@ -462,7 +458,7 @@ class Agent
                 return $address;
             }
         } catch (\Throwable $e) {
-            $this->puts("Couldn't resolve address for $host:$port", "warn");
+            $this->log->warn("Couldn't resolve address for $host:$port", "warn");
             $this->report_exception($e);
             return null;
         }
