@@ -6,9 +6,8 @@ namespace Instrumental;
 class Agent
 {
 
-    // TODO: Review these constants for applicability in a blocking world
     const MAX_BUFFER = 5000;
-    const SEND_REPLY_TIMEOUT = 1; // NOTE: setting this low since the agent is synchronous
+    const SEND_REPLY_TIMEOUT = 1;
     const RESOLUTION_FAILURES_BEFORE_WAITING = 3;
     const RESOLUTION_WAIT = 30;
     const RESOLVE_TIMEOUT = 1;
