@@ -2,6 +2,8 @@
 
 class AgentTest extends \PHPUnit_Framework_TestCase
 {
+    const HELLO_REGEX = "hello version php\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin_[^\s]+RELEASE_X86_64_x86_64\n";
+
     public function setUp()
     {
       // clear the test server command file
@@ -32,7 +34,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $I = $this->factoryAgent();
 
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "increment php.increment 2.2 [0-9]+ 1\n/";
 
@@ -61,7 +63,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
 
 
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "/";
 
         $this->setUp();
@@ -78,7 +80,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
 
 
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "/";
 
@@ -96,7 +98,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
 
 
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "(increment php.increment [0-9]+ [0-9]+ 1\n)+" .
           "increment php.increment 3.1 [0-9]+ 1\n" .
@@ -180,7 +182,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $I->setPort(4040);
 
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "increment php.increment 2.2 [0-9]+ 1\n" .
           "increment php.increment 2.3 [0-9]+ 1\n" .
@@ -197,7 +199,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "increment php.increment 2.2 [0-9]+ 1\n/";
 
@@ -212,7 +214,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "increment php.increment 2 123 1\n/";
 
@@ -227,7 +229,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "increment php.increment 2 15 1\n/";
 
@@ -242,7 +244,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "increment php.increment 2 123 456\n/";
 
@@ -257,7 +259,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "increment agent.invalid_metric 1 [0-9]+ 1\n" .
           "increment agent.invalid_metric 1 [0-9]+ 1\n" .
@@ -281,7 +283,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "increment agent.invalid_value 1 [0-9]+ 1\n" .
           "increment agent.invalid_value 1 [0-9]+ 1\n" .
@@ -305,7 +307,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "gauge php.gauge 2 [0-9]+ 1\n/";
 
@@ -320,7 +322,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "gauge php.gauge 2 15 1\n/";
 
@@ -335,7 +337,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "notice [0-9]+ 0 this is a test php notice\n/";
 
@@ -350,7 +352,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "notice 123 456 this is a test php notice\n/";
 
@@ -365,7 +367,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "notice 15 0 this is a test php notice\n/";
 
@@ -395,7 +397,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "gauge php.time 1.0[0-9]+ [0-9]+ 1\n/";
 
@@ -413,7 +415,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "gauge php.time_ms 10[0-9][0-9].[0-9]+ [0-9]+ 1\n/";
 
@@ -431,7 +433,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "gauge php.time 1.0[0-9]+ [0-9]+ 1\n/";
 
@@ -454,7 +456,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "gauge php.time_ms 10[0-9][0-9].[0-9]+ [0-9]+ 1\n/";
 
@@ -477,7 +479,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $expectedData =
-          "/hello version ruby\/instrumental_agent\/0.0.1 hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin [^ ]+ [^ ]+ Darwin Kernel Version [^ ]+: [^ ]+ [^ ]+ [^ ]+ [^ ]+:[^ ]+:[^ ]+ [^ ]+ [^ ]+; root:xnu-[^ ]+~1\/RELEASE_X86_64 x86_64\n" .
+          "/" . self::HELLO_REGEX .
           "authenticate test\n" .
           "gauge php.time 1.0[0-9]+ [0-9]+ 1\n/";
 

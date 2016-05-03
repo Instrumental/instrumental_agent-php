@@ -72,8 +72,8 @@ class Agent
         $hostname = gethostname();
         $pid = getmypid();
         $runtime = phpversion();
-        $platform = php_uname();
-        $cmd = "hello version ruby/instrumental_agent/$version hostname $hostname pid $pid runtime $runtime platform $platform\n";
+        $platform = preg_replace('/\s+/', '_', php_uname());
+        $cmd = "hello version php/instrumental_agent/$version hostname $hostname pid $pid runtime $runtime platform $platform\n";
 
         // $this->puts("Sleeping. Enable packet loss to test.");
         // sleep(10);
