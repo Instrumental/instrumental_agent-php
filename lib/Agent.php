@@ -3,7 +3,7 @@
 
 namespace Instrumental;
 
-class Instrumental
+class Agent
 {
 
     // TODO: Review these constants for applicability in a blocking world

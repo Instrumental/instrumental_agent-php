@@ -17,7 +17,7 @@ Visit [instrumentalapp.com](https://instrumentalapp.com) and create an account, 
 ## Usage
 
 ```php
-$I = new Instrumental();
+$I = new \Instrumental\Agent();
 $I->setApiKey("YOUR_API_KEY");
 $I->setEnabled(is_production);
 ```
