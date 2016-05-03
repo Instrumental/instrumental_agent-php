@@ -1,0 +1,95 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "hash": "f92e1bce128ef5c96d393b47acb22458",
+    "packages": [
+        {
+            "name": "instrumental/instrumental_agent",
+            "version": "v0.0.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Instrumental/instrumental-php.git",
+                "reference": "1e2d961fd54d8c0c38365b73a7a0ed5aa004777b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Instrumental/instrumental-php/zipball/1e2d961fd54d8c0c38365b73a7a0ed5aa004777b",
+                "reference": "1e2d961fd54d8c0c38365b73a7a0ed5aa004777b",
+                "shasum": ""
+            },
+            "require": {
+                "pear/net_dns2": "~1.4",
+                "php": ">=7"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "3.7.14"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Instrumental\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "WARNING: WORK IN PROGRESS. NOT PRODUCTION READY.",
+            "time": "2016-05-03 20:37:40"
+        },
+        {
+            "name": "pear/net_dns2",
+            "version": "1.4.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mikepultz/netdns2.git",
+                "reference": "ba0ede1df70ed98591a14efc88fb9097eafaf541"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mikepultz/netdns2/zipball/ba0ede1df70ed98591a14efc88fb9097eafaf541",
+                "reference": "ba0ede1df70ed98591a14efc88fb9097eafaf541",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.1.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Net_DNS2": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-2-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Mike Pultz",
+                    "email": "mike@mikepultz.com",
+                    "homepage": "http://mikepultz.com/",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Native PHP5 DNS Resolver and Updater Library",
+            "homepage": "http://netdns2.com/",
+            "keywords": [
+                "dns",
+                "network"
+            ],
+            "time": "2015-04-13 00:55:32"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}

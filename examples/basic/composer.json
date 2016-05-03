@@ -1,0 +1,5 @@
+{
+    "require": {
+        "instrumental/instrumental_agent": "*"
+    }
+}
