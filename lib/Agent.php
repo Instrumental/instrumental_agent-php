@@ -16,7 +16,9 @@ class Agent
     function __construct()
     {
         $this->log = new \Monolog\Logger("instrumental");
-        $this->log->pushHandler(new \Monolog\Handler\ErrorLogHandler());
+        $this->log_handler = new \Monolog\Handler\ErrorLogHandler();
+        $this->log_handler->setLevel("info");
+        $this->log->pushHandler($this->log_handler);
         $this->log->debug("__construct");
         $this->queue = new \SplQueue();
         $this->dns_resolutions = 0;
@@ -26,6 +28,11 @@ class Agent
         $this->socket = null;
         $this->queue_full_warning = null;
         $this->is_enabled = TRUE;
+    }
+
+    public function setLogLevel($level)
+    {
+      $this->log_handler->setLevel($level);
     }
 
     public function setHost($host)

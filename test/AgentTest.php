@@ -48,6 +48,8 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         echo exec("ps aux | grep php | grep TestServe[r]") . "\n";
         sleep(2);
 
+        $I->setLogLevel("critical"); // Don't spam error messages
+
         // Send enough through the socket that we can tell we're disconnected.
         for($i=1; $i<=400; ++$i) {
           $ret = $I->increment('php.increment', $i);
@@ -61,6 +63,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(3.1, $ret);
 
 
+        $I->setLogLevel("info"); // Don't spam error messages
 
         $expectedData =
           "/" . self::HELLO_REGEX .
@@ -121,6 +124,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $I->setPort(666);
+        $I->setLogLevel("critical"); // Don't spam error messages
         for($i=1; $i<=$I::MAX_BUFFER-1; ++$i) {
           $ret = $I->increment('php.increment', $i);
         }
@@ -132,6 +136,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $I->setPort(666);
+        $I->setLogLevel("critical"); // Don't spam error messages
         for($i=1; $i<=$I::MAX_BUFFER-1; ++$i) {
           $ret = $I->increment('php.increment', $i);
         }
