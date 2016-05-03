@@ -49,10 +49,10 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         sleep(2);
 
         // Send enough through the socket that we can tell we're disconnected.
-        for($i=1; $i<=1000; ++$i) {
+        for($i=1; $i<=200; ++$i) {
           $ret = $I->increment('php.increment', $i);
         }
-        $this->assertEquals(1000, $ret);
+        $this->assertEquals(200, $ret);
 
         $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
 
