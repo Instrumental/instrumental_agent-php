@@ -110,8 +110,7 @@ class Instrumental
     {
         // $this->log->addError('Bar');
         echo time() . " $message\n";
-        // flush();
-        ob_flush();
+        flush();
         // error_log("$message\n", 3, "logs/development.log");
     }
 
