@@ -9,8 +9,9 @@ class AgentTest extends \PHPUnit_Framework_TestCase
       // clear the test server command file
       fopen("test/server_commands_received", 'w');
       $this->setResponse("ok");
+      // TODO: see? I told you exec was a great idea!
       exec("php test/TestServer.php &> test/server.log &");
-      sleep(1);
+      sleep(1); // wait for server to spin up
     }
 
     public function setResponse($command)
@@ -48,9 +49,12 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         echo exec("ps aux | grep php | grep TestServe[r]") . "\n";
         sleep(2);
 
-        $I->setLogLevel("critical"); // Don't spam error messages
+        // The server is dead now, which will cause the agent to log
+        // lots of errors. Let's not spam them to the screen.
+        $I->setLogLevel("critical"); 
 
         // Send enough through the socket that we can tell we're disconnected.
+        // 400 is an arbitrary number high enough to guarantee correct detection.
         for($i=1; $i<=400; ++$i) {
           $ret = $I->increment('php.increment', $i);
         }
@@ -63,14 +67,14 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(3.1, $ret);
 
 
-        $I->setLogLevel("info"); // Don't spam error messages
+        $I->setLogLevel("info"); // Hide debug, but see the rest
 
         $expectedData =
           "/" . self::HELLO_REGEX .
           "/";
 
-        $this->setUp();
-        $this->setResponse("fail");
+        $this->setUp(); // restart server
+        $this->setResponse("fail"); // but server tells you it doesn't want to play
 
         // Queue's on failed hello
         $ret = $I->increment('php.increment', 3.2);
@@ -99,7 +103,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
 
 
 
-
+        // Check that all those failures above queued correctly
         $expectedData =
           "/" . self::HELLO_REGEX .
           "authenticate test\n" .
@@ -124,7 +128,9 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $I->setPort(666);
-        $I->setLogLevel("critical"); // Don't spam error messages
+        // Agent will complain about not being able to connect every time
+        // it can't send a metric. Let's not see all those.
+        $I->setLogLevel("critical"); 
         for($i=1; $i<=$I::MAX_BUFFER-1; ++$i) {
           $ret = $I->increment('php.increment', $i);
         }
@@ -132,15 +138,18 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(null, $I->increment("test.queue_full"));
     }
 
+    // Why is this the desired result?
     public function testTimeAndTimeMsReturnsBlockResultIfQueueIsFull()
     {
         $I = $this->factoryAgent();
         $I->setPort(666);
-        $I->setLogLevel("critical"); // Don't spam error messages
+        // Agent will complain about not being able to connect every time
+        // it can't send a metric. Let's not see all those.
+        $I->setLogLevel("critical");
         for($i=1; $i<=$I::MAX_BUFFER-1; ++$i) {
           $ret = $I->increment('php.increment', $i);
         }
-
+        // should this return something else if it fits in the queue?
         // last message that fits in the queue
         $ret = $I->time("test", function() {return "time result";});
         $this->assertEquals("time result", $ret);
@@ -176,7 +185,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
 
         $expectedData =
           "/^$/";
-
+        // should suppress error?
         $ret = $I->increment('php.increment', 2.2);
         $this->assertEquals(2.2, $ret);
         sleep(2);

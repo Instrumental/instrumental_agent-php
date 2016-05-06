@@ -108,8 +108,7 @@ class Agent
         $this->log->debug("connect $line");
         if($line != "ok\n")
         {
-          // TODO: Make message a little more helpful for the user when auth fails, they've probably misconfigured
-          $this->log->error("Authentication failed.");
+          $this->log->error("Authentication failed with key $this->api_key Please check your configuration." );
           $this->disconnect(); // TODO: delay retry?
           return FALSE;
         }
@@ -141,6 +140,7 @@ class Agent
       return $ret;
     }
 
+    //TODO: report these to instrumental?
     public function report_exception($e)
     {
       $this->log->error("Exception caught: " . $e->getMessage() . "\n" . $e->getTraceAsString());
@@ -192,16 +192,16 @@ class Agent
           {
               $time = time();
           }
-          $this->log->debug("increment2");
+          $this->log->debug("increment :: time formatted");
 
           if($this->is_valid_metric($metric, $value, $time, (int)$count) &&
              $this->send_command("increment", $metric, $value, $time, (int)$count))
           {
-              $this->log->debug("increment3");
+              $this->log->debug("increment success");
               return $value;
           } else
           {
-              $this->log->debug("increment4");
+              $this->log->debug("increment failure");
               return null;
           }
         });
@@ -213,6 +213,7 @@ class Agent
           $this->log->debug("notice");
           if($time)
           {
+              // TODO: make a time formatting function?
               if($time instanceOf \DateTimeInterface)
               {
                 $time = $time->getTimestamp();
@@ -257,7 +258,8 @@ class Agent
         $duration = $finish - $start;
         $this->gauge($metric, $duration * $multiplier, $start);
       });
-      // $this->log->debug("time exception: " . print_r($user_exception, TRUE));
+      
+      $this->log->debug("time exception: " . print_r($user_exception, TRUE));
       if($user_exception)
       {
         throw $user_exception;
@@ -316,9 +318,9 @@ class Agent
     public function send_command(...$args)
     {
         $this->log->debug("send_command");
+        $cmd = join(" ", $args) . "\n";
         if($this->is_enabled)
         {
-            $cmd = join(" ", $args) . "\n";
             if($this->queue->count() < self::MAX_BUFFER)
             {
                 $ret = $this->queue_message($cmd);
@@ -333,8 +335,10 @@ class Agent
                 $this->log->debug("Dropping command, queue full(" . $this->queue->count() . "): " . trim($cmd));
                 return null;
             }
+        } else {
+            $this->log->debug(trim($cmd));
+            return FALSE;
         }
-        return FALSE;
     }
 
     public function send_queued_messages()
@@ -392,10 +396,10 @@ class Agent
                 $this->log->debug("Disconnecting...");
                 // NOTE: In testing, fflush returned immediately when all packets were being dropped
                 fflush($this->socket);
-                $this->log->debug("disconnect after fflush");
+                $this->log->debug("disconnect :: fflush complete");
                 // NOTE: In testing, fclose returned immediately when all packets were being dropped
                 fclose($this->socket);
-                $this->log->debug("disconnect after fclose");
+                $this->log->debug("disconnect :: fclose complete");
                 return TRUE;
             }
             return FALSE;
@@ -438,8 +442,8 @@ class Agent
             $this->log->debug("queue message called ". $message);
             $this->log->debug("queue message, queue size before add: ". $this->queue->count());
             $this->queue->enqueue($message);
-            return $message;
         }
+        return $message;
     }
 
     public function ipv4_address_for_host($host, $port, $moment_to_connect = null)

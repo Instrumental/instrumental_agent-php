@@ -1,6 +1,6 @@
 {
     "name": "instrumental/instrumental_agent",
-    "description": "WARNING: WORK IN PROGRESS. NOT PRODUCTION READY.",
+    "description": "This agent supports Instrumental custom metric monitoring for PHP applications. It provides high-data reliability at high scale.",
     "license": "MIT",
     "require": {
         "php": ">=7",
