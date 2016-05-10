@@ -82,7 +82,13 @@ class Agent
         $pid = getmypid();
         $runtime = phpversion();
         $platform = preg_replace('/\s+/', '_', php_uname());
-        $hello_and_auth_cmd = "hello version php/instrumental_agent/" . self::VERSION . " hostname $hostname pid $pid runtime $runtime platform $platform\nauthenticate $this->api_key\n";
+        $hello_and_auth_cmd =
+          "hello version php/instrumental_agent/" . self::VERSION . " " .
+          "hostname $hostname " .
+          "pid $pid " .
+          "runtime $runtime " .
+          "platform $platform\n" .
+          "authenticate $this->api_key\n";
 
         // $this->log->debug("Sleeping. Enable packet loss to test.");
         // sleep(10);
