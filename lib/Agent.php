@@ -82,14 +82,15 @@ class Agent
         $pid = getmypid();
         $runtime = phpversion();
         $platform = preg_replace('/\s+/', '_', php_uname());
-        $cmd = "hello version php/instrumental_agent/" . self::VERSION . " hostname $hostname pid $pid runtime $runtime platform $platform\n";
+        $hello_and_auth_cmd = "hello version php/instrumental_agent/" . self::VERSION . " hostname $hostname pid $pid runtime $runtime platform $platform\nauthenticate $this->api_key\n";
 
         // $this->log->debug("Sleeping. Enable packet loss to test.");
         // sleep(10);
         // $this->log->debug("Resuming.");
 
         // NOTE: dropping packets didn't appear to affect sending
-        $this->socket_send($cmd);
+        $this->socket_send($hello_and_auth_cmd);
+
         $this->log->debug("connect fgets");
         // NOTE: dropping packets did affect fgets, and SEND_REPLY_TIMEOUT did apply
         $line = fgets($this->socket, 1024);
@@ -101,8 +102,6 @@ class Agent
           return FALSE;
         }
 
-        $cmd = "authenticate $this->api_key\n";
-        $this->socket_send($cmd);
         $this->log->debug("connect fgets");
         $line = fgets($this->socket, 1024);
         $this->log->debug("connect $line");
