@@ -150,19 +150,7 @@ class Agent
     {
         return $this->handleErrors(function() use ($metric, $value, $time, $count) {
           $this->log->debug("gauge");
-          if($time)
-          {
-              if($time instanceOf \DateTimeInterface)
-              {
-                $time = $time->getTimestamp();
-              } else
-              {
-                $time = (int)$time;
-              }
-          } else
-          {
-              $time = time();
-          }
+          $time = $this->reformat_time_input($time);
 
           if($this->is_valid_metric($metric, $value, $time, (int)$count) &&
              $this->send_command("gauge", $metric, $value, $time, (int)$count))
@@ -179,19 +167,7 @@ class Agent
     {
         return $this->handleErrors(function() use (&$metric, &$value, &$time, &$count) {
           $this->log->debug("increment");
-          if($time)
-          {
-              if($time instanceOf \DateTimeInterface)
-              {
-                $time = $time->getTimestamp();
-              } else
-              {
-                $time = (int)$time;
-              }
-          } else
-          {
-              $time = time();
-          }
+          $time = $this->reformat_time_input($time);
           $this->log->debug("increment :: time formatted");
 
           if($this->is_valid_metric($metric, $value, $time, (int)$count) &&
@@ -211,20 +187,7 @@ class Agent
     {
         return $this->handleErrors(function() use ($note, $time, $duration) {
           $this->log->debug("notice");
-          if($time)
-          {
-              // TODO: make a time formatting function?
-              if($time instanceOf \DateTimeInterface)
-              {
-                $time = $time->getTimestamp();
-              } else
-              {
-                $time = (int)$time;
-              }
-          } else
-          {
-              $time = time();
-          }
+          $time = $this->reformat_time_input($time);
 
           if($this->is_valid_note($note) &&
              $this->send_command("notice", $time, (int)$duration, $note))
@@ -473,5 +436,23 @@ class Agent
             $this->report_exception($e);
             return null;
         }
+    }
+
+    public function reformat_time_input($time = null)
+    {
+        if($time)
+        {
+            if($time instanceOf \DateTimeInterface)
+            {
+              $time = $time->getTimestamp();
+            } else
+            {
+              $time = (int)$time;
+            }
+        } else
+        {
+            $time = time();
+        }
+        return $time;
     }
 }
