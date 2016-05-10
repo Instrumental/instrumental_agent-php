@@ -1,3 +1,6 @@
+### 1.0.1 [May 10, 2016]
+* Removed README warning now that we're 1.0
+
 ### 1.0.0 [May 10, 2016]
 * Full increment/gauge/notice/time/timeMs API compliance
 
