@@ -50,7 +50,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
 
         // The server is dead now, which will cause the agent to log
         // lots of errors. Let's not spam them to the screen.
-        $I->setLogLevel("critical"); 
+        $I->setLogLevel("critical");
 
         // Send enough through the socket that we can tell we're disconnected.
         // 400 is an arbitrary number high enough to guarantee correct detection.
@@ -129,7 +129,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $I->setPort(666);
         // Agent will complain about not being able to connect every time
         // it can't send a metric. Let's not see all those.
-        $I->setLogLevel("critical"); 
+        $I->setLogLevel("critical");
         for($i=1; $i<=$I::MAX_BUFFER-1; ++$i) {
           $ret = $I->increment('php.increment', $i);
         }

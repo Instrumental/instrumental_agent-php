@@ -226,7 +226,7 @@ class Agent
         $duration = $finish - $start;
         $this->gauge($metric, $duration * $multiplier, $start);
       });
-      
+
       $this->log->debug("time exception: " . print_r($user_exception, TRUE));
       if($user_exception)
       {
