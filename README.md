@@ -17,7 +17,7 @@ Visit [instrumentalapp.com](https://instrumentalapp.com) and create an account, 
 ```php
 $I = new \Instrumental\Agent();
 $I->setApiKey("YOUR_API_KEY");
-$I->setEnabled(is_production);
+$I->setEnabled($isProduction); // only send metrics in production
 ```
 
 You'll probably want something like the above, only enabling the agent in production mode so you don't have development and production data writing to the same value. Or you can setup two projects, so that you can verify stats in one, and release them to production in another.
