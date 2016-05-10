@@ -244,7 +244,7 @@ class Agent
     {
         $valid_metric = preg_match("/^([\d\w\-_]+\.)*[\d\w\-_]+$/i", $metric);
         $this->log->debug("valid_metric: $valid_metric");
-        $valid_value  = preg_match("/^-?\d+(\.\d+)?(e-\d+)?$/", print_r($value, TRUE));
+        $valid_value  = preg_match("/^-?\d+(\.\d+)?((e|E)-\d+)?$/", print_r($value, TRUE));
         $this->log->debug("valid_value: $valid_value");
 
         if($valid_metric && $valid_value)

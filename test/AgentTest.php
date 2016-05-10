@@ -161,18 +161,18 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $I->setEnabled(FALSE);
-        $this->assertEquals(null, $I->increment("test"));
-        $this->assertEquals(null, $I->gauge("test", 1));
-        $this->assertEquals(null, $I->notice("test"));
+        $this->assertEquals(null, $I->increment("test.disabled.increment"));
+        $this->assertEquals(null, $I->gauge("test.disabled.gauge", 1));
+        $this->assertEquals(null, $I->notice("test disabled notice"));
     }
 
     public function testTimeAndTimeMsReturnBlockResultIfDisabled()
     {
         $I = $this->factoryAgent();
         $I->setEnabled(FALSE);
-        $ret = $I->time("test", function() {return "time result";});
+        $ret = $I->time("test.disabled.time", function() {return "time result";});
         $this->assertEquals("time result", $ret);
-        $ret = $I->timeMs("test", function() {return "timeMs result";});
+        $ret = $I->timeMs("test.disabled.timeMs", function() {return "timeMs result";});
         $this->assertEquals("timeMs result", $ret);
     }
 
@@ -314,6 +314,30 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(null, $ret);
         $ret = $I->increment('bad.value', $I);
         $this->assertEquals(null, $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
+    public function testSendsIncrementCallsCorrectlyWithScientificNotation()
+    {
+        $I = $this->factoryAgent();
+        $expectedData =
+          "/" . self::HELLO_REGEX .
+          "authenticate test\n" .
+          "increment php.increment 1.0E-11 [0-9]+ 1\n" .
+          "increment php.increment 1.2345E-5 [0-9]+ 1\n" .
+          "increment php.increment 0.3 [0-9]+ 1\n" .
+          "increment php.increment 4.0E-1 [0-9]+ 1\n/";
+
+        $ret = $I->increment('php.increment', 0.00000000001);
+        $this->assertEquals(0.00000000001, $ret);
+        $ret = $I->increment('php.increment', 12345.0E-9);
+        $this->assertEquals(12345.0E-9, $ret);
+        $ret = $I->increment('php.increment', 3.0E-1);
+        $this->assertEquals(3.0E-1, $ret);
+        $ret = $I->increment('php.increment', "4.0E-1");
+        $this->assertEquals("4.0E-1", $ret);
         sleep(2);
 
         $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
