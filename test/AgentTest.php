@@ -9,7 +9,6 @@ class AgentTest extends \PHPUnit_Framework_TestCase
       // clear the test server command file
       fopen("test/server_commands_received", 'w');
       $this->setResponse("ok");
-      // TODO: see? I told you exec was a great idea!
       exec("php test/TestServer.php &> test/server.log &");
       sleep(1); // wait for server to spin up
     }
@@ -138,7 +137,6 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(null, $I->increment("test.queue_full"));
     }
 
-    // Why is this the desired result?
     public function testTimeAndTimeMsReturnsBlockResultIfQueueIsFull()
     {
         $I = $this->factoryAgent();
@@ -149,8 +147,8 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         for($i=1; $i<=$I::MAX_BUFFER-1; ++$i) {
           $ret = $I->increment('php.increment', $i);
         }
-        // should this return something else if it fits in the queue?
-        // last message that fits in the queue
+
+        // queue is full
         $ret = $I->time("test", function() {return "time result";});
         $this->assertEquals("time result", $ret);
 
@@ -185,7 +183,11 @@ class AgentTest extends \PHPUnit_Framework_TestCase
 
         $expectedData =
           "/^$/";
-        // should suppress error?
+
+        // Agent will complain about not being able to connect, ignore.
+        // TODO: Add an assertion that the correct message gets logged.
+        $I->setLogLevel("critical");
+
         $ret = $I->increment('php.increment', 2.2);
         $this->assertEquals(2.2, $ret);
         sleep(2);
