@@ -4,7 +4,7 @@ namespace Instrumental;
 
 class Agent
 {
-    const VERSION = "0.0.7";
+    const VERSION = "1.0.0";
 
     const MAX_BUFFER = 5000;
     const SEND_REPLY_TIMEOUT = 1;
