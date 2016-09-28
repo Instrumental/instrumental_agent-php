@@ -10,8 +10,6 @@ Add the Instrumental Agent to `composer.json`.
 }
 ```
 
-TODO: Update the above to use version "~1.0" once we release 1.0.
-
 Run the installation:
 
 ```bash
