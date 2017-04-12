@@ -50,6 +50,10 @@ $I->notice('Testing socket buffer increase', time() - (3*24*60*60), 20*60); # an
 
 Need to quickly disable the agent? Use `$I->setEnabled(FALSE);` on initialization and you don't need to change any application code.
 
+## Symfony
+
+For usage with Symfony applications, we recommend registering the [agent as a Symfony service](examples/symfony/README.md).
+
 ## Troubleshooting & Help
 
 We are here to help. Email us at [support@instrumentalapp.com](mailto:support@instrumentalapp.com).
