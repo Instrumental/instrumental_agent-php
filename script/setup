@@ -2,6 +2,8 @@
 set -e
 cd "`dirname \"$0\"`/.."
 
+brew tap homebrew/homebrew-php
+
 # http://www.smddzcy.com/2016/01/installing-configuring-php7-zts-on-os-x/
 (php -v | grep 'PHP 7.0') || brew install php70 --with-thread-safety --with-phpdbg
 
