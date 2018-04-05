@@ -1,3 +1,6 @@
+### 1.0.2 [April 5, 2018]
+* Fix a logging issue related to #3
+
 ### 1.0.1 [May 10, 2016]
 * Removed README warning now that we're 1.0
 
