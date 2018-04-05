@@ -437,7 +437,7 @@ class Agent
                 return $address;
             }
         } catch (\Throwable $e) {
-            $this->log->warn("Couldn't resolve address for $host:$port", "warn");
+            $this->log->warn("Couldn't resolve address for $host:$port");
             $this->report_exception($e);
             return null;
         }

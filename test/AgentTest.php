@@ -26,6 +26,10 @@ class AgentTest extends \PHPUnit_Framework_TestCase
       $I->setPort(4040);
       $I->setApiKey("test");
       $I->setEnabled(true);
+      $I->log = new \Monolog\Logger("instrumental");
+      $I->log_handler = new \Monolog\Handler\TestHandler();
+      $I->log_handler->setLevel("info");
+      $I->log->pushHandler($I->log_handler);
       return $I;
     }
 
@@ -196,6 +200,39 @@ class AgentTest extends \PHPUnit_Framework_TestCase
 
 
         $I->setPort(4040);
+
+        $expectedData =
+          "/" . self::HELLO_REGEX .
+          "authenticate test\n" .
+          "increment php.increment 2.2 [0-9]+ 1\n" .
+          "increment php.increment 2.3 [0-9]+ 1\n" .
+          "/";
+
+        $ret = $I->increment('php.increment', 2.3);
+        $this->assertEquals(2.3, $ret);
+        sleep(2);
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+    }
+
+    public function testHandlesNoDnsResolution()
+    {
+        $I = $this->factoryAgent();
+        $I->setHost("hostThatDoesntActuallyExistSoWontResolve");
+
+        $expectedData =
+          "/^$/";
+
+        $ret = $I->increment('php.increment', 2.2);
+        $this->assertEquals(2.2, $ret);
+        sleep(2);
+        $this->assertRegExp("/instrumental\.WARNING: Couldn't resolve address for hostThatDoesntActuallyExistSoWontResolve:4040/", print_r($I->log_handler->getRecords(), TRUE));
+        $I->log_handler->clear();
+
+        $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
+
+
+        $I->setHost("localhost");
 
         $expectedData =
           "/" . self::HELLO_REGEX .
