@@ -2,7 +2,7 @@
 
 class AgentTest extends \PHPUnit_Framework_TestCase
 {
-    const HELLO_REGEX = "hello version php\/instrumental_agent\/" . \Instrumental\Agent::VERSION . " hostname [^ ]+ pid \d+ runtime 7.0.5 platform Darwin_[^\s]+RELEASE_X86_64_x86_64\n";
+    const HELLO_REGEX = "hello version php\/instrumental_agent\/" . \Instrumental\Agent::VERSION . " hostname [^ ]+ pid \d+ runtime " . PHP_VERSION . " platform Darwin_[^\s]+RELEASE_X86_64_x86_64\n";
 
     public function setUp()
     {
@@ -30,7 +30,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     }
 
     public function testHandlesDisconnect()
-    {
+      {
         $I = $this->factoryAgent();
 
         $expectedData =
@@ -49,10 +49,10 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         sleep(2);
 
         // The server is dead now, which will cause the agent to log
-        // lots of errors. Let's not spam them to the screen.
+        // lots of errors. Lets not spam them to the screen.
         $I->setLogLevel("critical");
 
-        // Send enough through the socket that we can tell we're disconnected.
+        // Send enough through the socket that we can tell were disconnected.
         // 400 is an arbitrary number high enough to guarantee correct detection.
         for($i=1; $i<=400; ++$i) {
           $ret = $I->increment('php.increment', $i);
@@ -65,7 +65,6 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $ret = $I->increment('php.increment', 3.1);
         $this->assertEquals(3.1, $ret);
 
-
         $I->setLogLevel("info"); // Hide debug, but see the rest
 
         $expectedData =
@@ -73,9 +72,9 @@ class AgentTest extends \PHPUnit_Framework_TestCase
           "/";
 
         $this->setUp(); // restart server
-        $this->setResponse("fail"); // but server tells you it doesn't want to play
+        $this->setResponse("fail"); // but server tells you it doesnt want to play
 
-        // Queue's on failed hello
+        // Queues on failed hello
         $ret = $I->increment('php.increment', 3.2);
         $this->assertEquals(3.2, $ret);
         sleep(2);
@@ -93,7 +92,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $this->setUp();
         $this->setResponse("ok\nfail");
 
-        // Queue's on failed auth
+        // Queues on failed auth
         $ret = $I->increment('php.increment', 3.3);
         $this->assertEquals(3.3, $ret);
         sleep(2);
@@ -532,7 +531,7 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         } catch (Exception $e) {
           $ret = $e;
         }
-        // The agent error handling doesn't affect the user error, the underlying error handling takes effect.
+        // The agent error handling doesnt affect the user error, the underlying error handling takes effect.
         $this->assertEquals("Object of class Instrumental\Agent could not be converted to string", $ret->getMessage());
         sleep(2);
 
