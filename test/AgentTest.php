@@ -52,10 +52,6 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         echo exec("ps aux | grep php | grep TestServe[r]") . "\n";
         sleep(2);
 
-        // The server is dead now, which will cause the agent to log
-        // lots of errors. Let's not spam them to the screen.
-        $I->setLogLevel("critical");
-
         // Send enough through the socket that we can tell we're disconnected.
         // 400 is an arbitrary number high enough to guarantee correct detection.
         for($i=1; $i<=400; ++$i) {
@@ -131,9 +127,6 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $I->setPort(666);
-        // Agent will complain about not being able to connect every time
-        // it can't send a metric. Let's not see all those.
-        $I->setLogLevel("critical");
         for($i=1; $i<=$I::MAX_BUFFER-1; ++$i) {
           $ret = $I->increment('php.increment', $i);
         }
@@ -145,9 +138,6 @@ class AgentTest extends \PHPUnit_Framework_TestCase
     {
         $I = $this->factoryAgent();
         $I->setPort(666);
-        // Agent will complain about not being able to connect every time
-        // it can't send a metric. Let's not see all those.
-        $I->setLogLevel("critical");
         for($i=1; $i<=$I::MAX_BUFFER-1; ++$i) {
           $ret = $I->increment('php.increment', $i);
         }
@@ -188,13 +178,11 @@ class AgentTest extends \PHPUnit_Framework_TestCase
         $expectedData =
           "/^$/";
 
-        // Agent will complain about not being able to connect, ignore.
-        // TODO: Add an assertion that the correct message gets logged.
-        $I->setLogLevel("critical");
-
         $ret = $I->increment('php.increment', 2.2);
         $this->assertEquals(2.2, $ret);
         sleep(2);
+        $this->assertRegExp("/instrumental\.ERROR: Exception caught: stream_socket_client\(\): unable to connect to tcp:\/\/127\.0\.0\.1:666 \(Connection refused\)/", print_r($I->log_handler->getRecords(), TRUE));
+        $I->log_handler->clear();
 
         $this->assertRegExp($expectedData, file_get_contents("test/server_commands_received"));
 
